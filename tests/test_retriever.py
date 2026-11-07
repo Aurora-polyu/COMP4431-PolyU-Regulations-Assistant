@@ -198,6 +198,23 @@ class IntegrationTests(unittest.TestCase):
                 scores = retriever.bm25.get_scores(["zx101"])
                 self.assertGreater(scores[0], scores[1])
 
+    def test_withdraw_query_matches_withdrawal_passage(self):
+        from src.retriever import HybridRetriever
+        from rank_bm25 import BM25Plus
+        retriever = HybridRetriever.__new__(HybridRetriever)
+        retriever.ids = ["programme", "unrelated"]
+        retriever.chunks = {
+            "programme": {"chunk_id": "programme", "section": "Example", "printed_page": 1,
+                          "pdf_page": 1, "text": "Official withdrawal from a programme"},
+            "unrelated": {"chunk_id": "unrelated", "section": "Example", "printed_page": 1,
+                          "pdf_page": 1, "text": "Information about the campus"},
+        }
+        retriever.tokens = [tokenize(retriever.chunks[i]["text"]) for i in retriever.ids]
+        retriever.bm25 = BM25Plus(retriever.tokens)
+        retriever.model = FakeModel()
+        retriever.collection = SimpleNamespace(query=lambda **kw: {"ids": [["unrelated", "programme"]]})
+        self.assertEqual(retriever.search("How do I withdraw from my programme?", 2)[0]["chunk_id"], "programme")
+
 
 if __name__ == "__main__":
     unittest.main()

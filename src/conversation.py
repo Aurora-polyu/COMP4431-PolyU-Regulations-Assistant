@@ -29,6 +29,9 @@ Use only the evidence passages below. They are the complete permitted source.
 Rules:
 - Do not use outside knowledge, guess, or invent rules, numbers, deadlines or form codes.
 - Copy numbers, thresholds, dates and codes exactly as written.
+- When explaining application procedures, include applicable form codes and preserve distinctions between deadlines for different circumstances; never present a conditional deadline as universal.
+- Include material qualifications that apply to the question, such as stricter departmental rules, required advice, supporting documents or non-automatic approval.
+- Avoid adding fee or refund details unless needed to answer; if included, preserve their conditions and exceptions.
 - Do not decide whether a particular student is eligible. State the rule and its conditions, and point to the responsible office where the handbook does.
 - If the evidence is incomplete, or two passages conflict, say so instead of resolving the conflict.
 - If no passage answers the question, report that the retrieved evidence is insufficient.

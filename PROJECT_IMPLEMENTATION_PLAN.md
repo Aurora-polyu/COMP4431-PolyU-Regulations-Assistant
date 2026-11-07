@@ -130,7 +130,7 @@ Prepare **30 manually checked questions** based only on the handbook:
 | Conditional student scenarios | 8 |
 | Multi-section questions | 5 |
 | Conversational follow-ups | 4 |
-| Unsupported or ambiguous questions | 5 |
+| Clearly worded unsupported questions | 5 |
 | **Total** | **30** |
 
 Track: Retrieval Recall@5, answer correctness, citation claim support, unsupported-answer handling, and end-to-end latency. Proposed targets (not claimed results): ≥90% Recall@5; ≥90% answer correctness; aim for 100% grounded citations and appropriate abstention. Inspect errors manually before drawing conclusions.

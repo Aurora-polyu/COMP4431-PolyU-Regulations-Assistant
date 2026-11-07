@@ -28,7 +28,9 @@ def is_sample_hash(source_hash: str) -> bool:
 
 
 def tokenize(text: str) -> list[str]:
-    return re.findall(r"[a-z0-9]+", text.lower())
+    words = re.findall(r"[a-z0-9]+", text.lower())
+    # Match verb and noun forms while retaining the surrounding context words.
+    return ["withdraw" if word in {"withdrawal", "withdrawals", "withdrawing", "withdrawn"} else word for word in words]
 
 
 def validate_chunks(chunks: object) -> list[RetrievedChunk]:

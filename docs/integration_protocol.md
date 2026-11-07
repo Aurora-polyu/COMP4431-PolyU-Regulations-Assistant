@@ -1,6 +1,6 @@
 # Integration protocol — PolyU regulations assistant
 
-**Status:** Stages A–D have passed their integration gates with recorded limitations; retrieval benchmarking and Stage E remain pending.
+**Status:** Stages A–D have passed their integration gates with recorded limitations; Stage E evaluation is complete with grounding limitations accepted by the project user; teammate review remains pending. See [Stage E review](stage_e_review.md).
 
 **Working branch:** `codex/integration`, in the `GP-integration` worktree.
 **Baseline:** merge commit `6d3ec6a`, incorporating the four member branches and retrieval commit `ae5892f`. This branch was local at the time of writing. Keep `main` stable and record subsequent integration commits and reviews.
@@ -102,7 +102,7 @@ On 2026-11-07, a dedicated Python 3.12.13 environment was created at `GP-integra
 
 **Prerequisites:** Stages A–D completed, a reviewed test set and a repeatable environment. Keep handbook-derived evaluation material local until redistribution permission is confirmed. All members participate in verification; module owners investigate failures in their areas.
 
-1. Assemble and manually check the project plan's 30 questions: 8 direct factual, 8 conditional, 5 multi-section, 4 follow-up and 5 unsupported or ambiguous. For each, record expected evidence and both page numbers; include context for follow-ups and reasonable alternatives for ambiguous cases.
+1. Assemble and manually check 30 clearly worded questions: 8 direct factual, 8 conditional, 5 multi-section, 4 follow-up and 5 unsupported. This replaces the project plan’s unsupported-or-ambiguous category at the user’s request; do not use questions whose intended meaning is ambiguous. For each answerable case, record expected evidence and both page numbers; include context for follow-ups.
 2. Record per-question retrieved IDs/ranks, evidence-item Recall@5 under the agreed definition, answer correctness, claim-by-claim citation support, correct abstention or clarification, latency and notes. Inspect numerical conditions and tables against the PDF. Report category results, failures, denominator and limitations; distinguish the plan's targets (≥90% Recall@5, ≥90% answer correctness, and an aim of 100% grounded citations and appropriate abstention) from observed results.
 3. Fix and retest failures, rerunning affected automated and manual cases. Record the code commit, data and PDF hashes, embedding model/revision, index manifest, LLM model, dependency versions, environment, date and reviewer with results. Do not treat a successful API call or citation ID validation as proof of correctness.
 4. From a clean environment, follow the updated setup instructions and rerun the full tests, the handbook-dependent checks, and representative end-to-end UI scenarios. Record skipped tests and reasons. Verify no keys, local indexes, environments or unauthorized PDF are included in changes; separately review redistribution permission for the already tracked handbook-derived data.

@@ -11,11 +11,12 @@ The handbook PDF is available locally. The current sample chunks are fictional, 
 Use the Python 3.12 environment and pinned dependencies described in the [README](../README.md). From the repository root, build an index from the synthetic fixture and run the tests:
 
 ```sh
-python scripts/build_index.py
+python scripts/build_index.py --chunks data/sample_chunks.json --index-dir chroma_db_sample
+export RETRIEVAL_INDEX_DIR=chroma_db_sample
 python -m unittest discover -s tests
 ```
 
-The build may download the model. It creates a new generation in the ignored local `chroma_db/` directory; it does not use handbook data. Run the following in the same environment:
+The build may download the model. It creates a new generation in the ignored local `chroma_db_sample/` directory; it does not use handbook data. Unset `RETRIEVAL_INDEX_DIR` after the smoke test before querying the handbook index. Run the following in the same environment:
 
 ```python
 from src.retriever import retrieve

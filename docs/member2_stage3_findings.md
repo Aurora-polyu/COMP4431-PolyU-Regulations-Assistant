@@ -6,7 +6,7 @@
 
 ## Synthetic verification
 
-In the project virtual environment, Python 3.12.13 successfully built the default index with `python scripts/build_index.py`. The input was `data/sample_chunks.json`, containing three fictional passages. `python -m unittest discover -s tests` passed all 8 tests. Integration tests use controlled embeddings; the following separate smoke test used the actual local model.
+In the project virtual environment, Python 3.12.13 successfully built the default index with `python scripts/build_index.py`. At that time the default input was `data/sample_chunks.json`, containing three fictional passages; the default has since changed to handbook chunks, and this historical smoke test now requires the explicit sample command in the Stage 3 protocol. `python -m unittest discover -s tests` passed all 8 tests. Integration tests use controlled embeddings; the following separate smoke test used the actual local model.
 
 Model: `BAAI/bge-small-en-v1.5`  
 Immutable model revision: `5c38ec7c405ec4b44b94cc5a9bb96e735b38267a`
@@ -38,3 +38,7 @@ The handoff to Members 1 and 3 has been completed, as reported by Member 2. Thei
 ## Branch review
 
 The tracked file list contains the synthetic fixture and code, not the handbook PDF, virtual environment, local Chroma index, or `.env` file. Git ignore checks cover the local handbook, default index, virtual environment, and local evaluation file. Other custom index paths must also be kept out of Git. The Stage 3 protocol and these findings are ready for teammate review; a teammate review and pull request remain to be completed under the project plan.
+
+## Integration follow-up
+
+Member 1 has supplied validated JSON Lines chunks on `feature/data`. The handbook retrieval benchmark, team agreement on evaluation scoring, and integration with Member 3 remain separate pending steps.

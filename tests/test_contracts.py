@@ -1,13 +1,14 @@
 import subprocess
+import os
+from unittest.mock import patch
 import sys
 import unittest
 
-from src import contracts, mock_retriever, retriever
+from src import contracts, retriever
 
 
 class ContractTests(unittest.TestCase):
     def test_shared_types_and_compatible_imports(self):
-        self.assertIs(mock_retriever.RetrievedChunk, contracts.RetrievedChunk)
         self.assertIs(retriever.RetrievedChunk, contracts.RetrievedChunk)
         self.assertIs(retriever.RetrievalError, contracts.RetrievalError)
 
@@ -18,3 +19,8 @@ class ContractTests(unittest.TestCase):
             capture_output=True, text=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_default_retriever_ignores_old_mock_setting(self):
+        from src.conversation import _default_retriever
+        with patch.dict(os.environ, {"RETRIEVAL_BACKEND": "mock"}):
+            self.assertIs(_default_retriever(), retriever.retrieve)

@@ -1,9 +1,7 @@
 """Section-aware, page-bounded chunking for the PolyU handbook.
 
-Member 1 — Handbook Processing & Data (COMP4431 group project).
-
 The chunker takes the :class:`~pdf_processor.DocumentModel` and produces the
-canonical chunks described in ``docs/member1_protocol.md``.
+canonical chunks described in ``docs/data-and-indexing.md``.
 
 Invariants (enforced here, verified in tests):
 

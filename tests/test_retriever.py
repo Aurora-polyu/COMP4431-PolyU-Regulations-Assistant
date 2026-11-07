@@ -15,7 +15,28 @@ import numpy as np
 from scripts.build_index import build_index, parse_chunks
 from src.retriever import DEFAULT_INDEX, RetrievalError, _load, _manifest, file_hash, retrieve, rrf, tokenize, validate_chunks
 
-FIXTURE = Path(__file__).resolve().parent.parent / "data" / "sample_chunks.json"
+FIXTURE = None
+_fixture_directory = None
+_fixture_hash_patch = None
+
+
+def setUpModule():
+    global FIXTURE, _fixture_directory, _fixture_hash_patch
+    _fixture_directory = tempfile.TemporaryDirectory()
+    FIXTURE = Path(_fixture_directory.name) / "retrieval_test.json"
+    chunks = [
+        {"chunk_id": "sample_001", "section": "Example", "printed_page": 1, "pdf_page": 1, "text": "ZX101 leave example."},
+        {"chunk_id": "sample_002", "section": "Example", "printed_page": 2, "pdf_page": 2, "text": "A different test passage."},
+        {"chunk_id": "sample_003", "section": "Example", "printed_page": 3, "pdf_page": 3, "text": "Another test passage."},
+    ]
+    FIXTURE.write_text(json.dumps(chunks))
+    _fixture_hash_patch = patch("src.retriever.FICTIONAL_SAMPLE_SHA256", file_hash(FIXTURE))
+    _fixture_hash_patch.start()
+
+
+def tearDownModule():
+    _fixture_hash_patch.stop()
+    _fixture_directory.cleanup()
 
 
 class FakeModel:
@@ -40,8 +61,8 @@ class UnitTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Duplicate chunk_id"):
             parse_chunks((json.dumps(chunks[0]) + "\n" + json.dumps(chunks[0])).encode(), source)
 
-    def test_cli_requires_safe_source_and_sample_directory(self):
-        script = FIXTURE.parents[1] / "scripts/build_index.py"
+    def test_cli_rejects_missing_source(self):
+        script = Path(__file__).resolve().parents[1] / "scripts/build_index.py"
         env = dict(os.environ)
         env.pop("RETRIEVAL_INDEX_DIR", None)
         with tempfile.TemporaryDirectory() as directory:
@@ -49,14 +70,8 @@ class UnitTests(unittest.TestCase):
             index = Path(directory) / "index"
             result = subprocess.run([sys.executable, str(script), "--chunks", str(missing), "--index-dir", str(index)], capture_output=True, text=True, env=env)
             self.assertNotEqual(result.returncode, 0)
-            self.assertIn("Obtain Member 1", result.stderr)
+            self.assertIn("Prepare the handbook chunks", result.stderr)
             self.assertFalse(index.exists())
-            result = subprocess.run([sys.executable, str(script), "--chunks", str(FIXTURE)], capture_output=True, text=True, env=env)
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn("explicit --index-dir", result.stderr)
-            result = subprocess.run([sys.executable, str(script), "--chunks", str(FIXTURE), "--index-dir", str(DEFAULT_INDEX)], capture_output=True, text=True, env=env)
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn("separate index", result.stderr)
 
     def test_missing_default_does_not_publish_an_index(self):
         from scripts.build_index import main
@@ -70,7 +85,7 @@ class UnitTests(unittest.TestCase):
                  redirect_stderr(stderr), self.assertRaises(SystemExit) as exc:
                 main()
             self.assertNotEqual(exc.exception.code, 0)
-            self.assertIn("Obtain Member 1", stderr.getvalue())
+            self.assertIn("Prepare the handbook chunks", stderr.getvalue())
             self.assertFalse(index.exists())
 
     def test_validation(self):

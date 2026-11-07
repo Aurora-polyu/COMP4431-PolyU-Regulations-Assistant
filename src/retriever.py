@@ -11,7 +11,7 @@ from src.contracts import RetrievalError, RetrievedChunk
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_INDEX = ROOT / "chroma_db"
-SAMPLE_SOURCE = ROOT / "data/sample_chunks.json"
+FICTIONAL_SAMPLE_SHA256 = "81d67823543004844fc3192870cae41ea4125ddd2d501029e91d85888517739c"
 DEFAULT_MODEL = "BAAI/bge-small-en-v1.5"
 QUERY_PREFIX = "Represent this sentence for searching relevant passages: "
 COLLECTION = "chunks"
@@ -24,7 +24,7 @@ def file_hash(path: Path) -> str:
 
 def is_sample_hash(source_hash: str) -> bool:
     """Recognize the provided fictional fixture even across checkout paths."""
-    return source_hash == file_hash(SAMPLE_SOURCE)
+    return source_hash == FICTIONAL_SAMPLE_SHA256
 
 
 def tokenize(text: str) -> list[str]:

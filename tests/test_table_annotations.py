@@ -8,7 +8,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT / "src"))
-from stage_a_table_annotations import ANNOTATIONS, annotate
+from table_annotations import ANNOTATIONS, annotate
 from citations import evidence_block
 from src.conversation import answer_question
 

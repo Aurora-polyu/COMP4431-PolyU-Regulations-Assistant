@@ -11,6 +11,7 @@ from src.contracts import RetrievalError, RetrievedChunk
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_INDEX = ROOT / "chroma_db"
+SAMPLE_SOURCE = ROOT / "data/sample_chunks.json"
 DEFAULT_MODEL = "BAAI/bge-small-en-v1.5"
 QUERY_PREFIX = "Represent this sentence for searching relevant passages: "
 COLLECTION = "chunks"
@@ -19,6 +20,11 @@ FORMAT_VERSION = 2
 
 def file_hash(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def is_sample_hash(source_hash: str) -> bool:
+    """Recognize the provided fictional fixture even across checkout paths."""
+    return source_hash == file_hash(SAMPLE_SOURCE)
 
 
 def tokenize(text: str) -> list[str]:
@@ -88,6 +94,8 @@ def _manifest(index_dir: Path, model_name: str) -> tuple[dict, str]:
                 or manifest["query_prefix"] != QUERY_PREFIX):
             raise ValueError("index format or embedding configuration differs")
         source = Path(manifest["source_path"])
+        if index_dir.resolve() == DEFAULT_INDEX.resolve() and is_sample_hash(manifest["source_sha256"]):
+            raise ValueError("fictional sample data is not allowed in the default handbook index")
         if file_hash(source) != manifest["source_sha256"]:
             raise ValueError("source chunks have changed")
         revision = manifest["model_revision"]
@@ -98,7 +106,7 @@ def _manifest(index_dir: Path, model_name: str) -> tuple[dict, str]:
             raise ValueError("invalid index generation")
         return manifest, raw
     except (OSError, KeyError, TypeError, ValueError) as exc:
-        raise RetrievalError(f"Index at {index_dir} is missing, stale, or incompatible ({exc}). Rebuild with python scripts/build_index.py using the intended chunks and model.") from exc
+        raise RetrievalError(f"Index at {index_dir} is missing, stale, or incompatible ({exc}). Rebuild with python scripts/build_index.py --chunks /path/to/intended/chunks.jsonl --index-dir /path/to/intended/index and the original model.") from exc
 
 
 class HybridRetriever:

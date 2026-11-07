@@ -244,3 +244,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Isolated fictional retrieval smoke-test index
+chroma_db_sample/

@@ -1,9 +1,5 @@
 # src/mock_backend.py
-# Member 4 专用:Member 3 的 answer_question() 没做完之前,先用这个假后端开发 UI。
-# 字段名必须和 PROJECT_IMPLEMENTATION_PLAN.md 第 3 节约定的 ChatResponse 完全一致,
-# 这样以后把 import 换成真函数时,UI 代码一行都不用改。
 
-# 假引用原文(expandable 展开时显示)
 _MOCK_CHUNKS = [
     {
         "chunk_id": "sec5_C_001",
@@ -31,14 +27,9 @@ _MOCK_CHUNKS = [
 
 
 def answer_question(question, history):
-    """假回答:根据问题关键词返回四种不同状态,方便你把 UI 每个分支都测一遍。
-
-    真函数由 Member 3 提供,签名相同:
-        answer_question(question: str, history: list[dict]) -> ChatResponse
-    """
+    """Return fictional responses for isolated interface development tests."""
     q = question.lower()
 
-    # 测试"错误"分支:问题里带 error
     if "error" in q:
         return {
             "answer": "",
@@ -48,7 +39,6 @@ def answer_question(question, history):
             "status": "error",
         }
 
-    # 测试"需要澄清"分支:问题里带 clarify
     if "clarify" in q:
         return {
             "answer": "",
@@ -61,7 +51,6 @@ def answer_question(question, history):
             "status": "needs_clarification",
         }
 
-    # 测试"证据不足"分支:问题里带 xyz 或 nonsense
     if "xyz" in q or "nonsense" in q:
         return {
             "answer": "",
@@ -71,7 +60,6 @@ def answer_question(question, history):
             "status": "insufficient_evidence",
         }
 
-    # 默认:正常回答,带两条假引用
     return {
         "answer": (
             "MOCK ANSWER: Based on the Student Handbook, you may retake a failed "

@@ -1,6 +1,6 @@
 # Integration protocol — PolyU regulations assistant
 
-**Status:** Stages A–C have passed their integration gates with recorded limitations; retrieval benchmarking and Stages D–E remain pending.
+**Status:** Stages A–D have passed their integration gates with recorded limitations; retrieval benchmarking and Stage E remain pending.
 
 **Working branch:** `codex/integration`, in the `GP-integration` worktree.
 **Baseline:** merge commit `6d3ec6a`, incorporating the four member branches and retrieval commit `ae5892f`. This branch was local at the time of writing. Keep `main` stable and record subsequent integration commits and reviews.
@@ -12,7 +12,7 @@
 | Member 1 — data | Extracts the handbook into page-bounded chunks and accompanying statistics, page map and table report. | `data/chunks.jsonl`: exactly `chunk_id`, `section`, `printed_page`, `pdf_page`, `text`. Both page numbers are 1-based. |
 | Member 2 — retrieval | Hybrid sentence embeddings, ChromaDB, BM25 and reciprocal rank fusion. | `retrieve(query: str, top_k: int = 5)` returns ranked chunks with those five fields. Blank query returns `[]`; invalid `top_k` raises `ValueError`; index/model/search failures raise `RetrievalError`. |
 | Member 3 — answer service | DeepSeek client, history-aware search query, evidence prompting and citation ID validation. | `answer_question(question, history)` returns `answer`, `citation_chunk_ids`, `cited_chunks`, `clarification_question`, `status` and `evidence_source`. Status is `answered`, `needs_clarification`, `insufficient_evidence` or `error`. |
-| Member 4 — interface | Streamlit chat, examples, language selector, session history and expandable citations. | The UI currently imports `src.mock_backend.answer_question`; it must consume the real answer-service response. |
+| Member 4 — interface | Streamlit chat, examples, session history and expandable citations. | The UI consumes `src.conversation.answer_question`; Stage D removed the language selector and mock backend import. |
 
 The answer service already selects `src.retriever` by default. `RETRIEVAL_BACKEND=mock` explicitly selects the fictional mock retriever; setting an index path selects an index, not a retriever. `src/mock_backend.py`, `src/mock_retriever.py` and `data/sample_chunks.json` are development fixtures. Their contents are fictional and must never be presented as handbook rules. Retaining them for isolated tests is acceptable; they must not be on the normal user-facing path.
 
@@ -24,7 +24,9 @@ On 2026-11-07, running `../GP/.venv/bin/python -m pytest -q -rs` from the integr
 
 **Current approved data and Stage B (2026-11-07):** Stage A passed with an accepted table-coverage limitation. The approved PDF SHA-256 remains `4fb771304c1d1ae17f2e2d1187b8878d2e0942966959eda1b3bfbbc48cf9a464`; the approved 186-chunk file now has SHA-256 `4c9ba414555b6fd35a184088f8768cdd2d98fb296fbe7f4522f37704e4683bc3`, superseding the historical baseline hash above. A fresh handbook index was built and the Stage B integration gate passed with a documented paraphrase miss; the benchmark and quality assessment remain pending. See [Stage A review](stage_a_review.md) and [Stage B review](stage_b_review.md) for provenance, results, and limitations.
 
-**Stage C (2026-11-07):** The answer-service gate passed the recorded live and deterministic checks, with retrieval and table-coverage limitations carried forward. The Streamlit UI still uses the mock backend and is not the integrated handbook application. See the [Stage C review](stage_c_review.md) for results and the required Stage D fixture-warning checks.
+**Stage C (2026-11-07):** The answer-service gate passed the recorded live and deterministic checks, with retrieval and table-coverage limitations carried forward. At the Stage C gate the Streamlit UI still used the mock backend; Stage D subsequently integrated the real service. See the [Stage C review](stage_c_review.md) for results and fixture-warning requirements.
+
+**Stage D (2026-11-07):** The Streamlit interface is connected to the answer service and passed the recorded deterministic and live checks, with the existing limitations carried forward. A repeat live-browser check confirmed reset, which also passed in a real-service Streamlit test session and deterministic tests. See the [Stage D review](stage_d_review.md).
 
 On 2026-11-07, a dedicated Python 3.12.13 environment was created at `GP-integration/.venv`, separate from `../GP/.venv`. The pinned requirements, including Streamlit 1.67.0, PyMuPDF 2.1 and pytest 9.2.0, were installed there, and `pip check` found no broken requirements. Activate it from the integration root with `source .venv/bin/activate`. During integration, test the runtime and test dependencies together and document a clean setup; a successful `pip check` alone does not establish reproducibility or integrated application behavior.
 
@@ -80,13 +82,13 @@ On 2026-11-07, a dedicated Python 3.12.13 environment was created at `GP-integra
 1. Run automated answer-service and retrieval tests using injected test doubles. Then exercise `src.conversation.answer_question` with the real selected index and live service, recording inputs, model, source/index identifiers and outcomes without recording credentials.
 2. Check a straightforward answer and a conditional answer against the exact passages; confirm returned cited IDs belong to the retrieved set and `cited_chunks` retain complete text and both page numbers. A valid citation ID does **not** prove the passage supports every claim: manually check claim support.
 3. Test a contextual follow-up, a clarification, unsupported or insufficient evidence, empty retrieval, malformed/unknown citations, and missing or stale index and API failure. Verify errors are distinct from insufficient evidence and that no answer falls back to fictional data or invented regulations.
-4. Exercise fixture detection in isolated tests, including mixed fixture/handbook chunks. If a fixture is ever enabled in a development UI, ensure its warning is visible for every applicable status; the current UI replaces the backend text for insufficient-evidence and error responses, so this cannot be assumed. Inspect configuration explicitly: the retriever is selected before the DeepSeek client loads `.env` on a first call, so process environment configuration must be established before startup.
+4. Exercise fixture detection in isolated tests, including mixed fixture/handbook chunks. If a fixture is ever enabled in a development UI, ensure its warning is visible for every applicable status; the pre-Stage-D UI replaced the backend text for insufficient-evidence and error responses, so this could not be assumed. Inspect configuration explicitly: the retriever is selected before the DeepSeek client loads `.env` on a first call, so process environment configuration must be established before startup.
 
 **Expected / gate:** Answer-service outcomes and errors match the contract; real answers are grounded in verified handbook passages and fictional evidence cannot be mistaken for handbook evidence. Stop on unsupported claims, hidden fixture warnings, unhandled errors, or inability to reproduce the configured retrieval source.
 
 ## 5. Stage D — connect the Streamlit interface
 
-**Prerequisites:** Stages B and C pass and Streamlit is installed in the selected environment. The agreed scope is English only. The current UI has English, Simplified Chinese and Traditional Chinese labels and examples; remove the language selector and Chinese interface text during integration. Multilingual retrieval and answers are outside the current scope.
+**Prerequisites:** Stages B and C pass and Streamlit is installed in the selected environment. The agreed scope is English only. The pre-Stage-D UI had English, Simplified Chinese and Traditional Chinese labels and examples; remove the language selector and Chinese interface text during integration. Multilingual retrieval and answers are outside the current scope.
 
 1. Replace the `src.mock_backend.answer_question` import in `app.py` with `src.conversation.answer_question`, retaining the agreed interface. Ensure normal startup selects the intended real handbook index and no mock backend. The UI must not independently call the retriever or model.
 2. Render all four statuses appropriately. Preserve safe, actionable backend error information, distinguish insufficient evidence from infrastructure failure, and show fixture warnings where relevant without exposing credentials or sensitive details. Show complete cited chunk text with section, printed page and 1-based PDF page.
@@ -114,5 +116,5 @@ On 2026-11-07, a dedicated Python 3.12.13 environment was created at `GP-integra
 - [Member 1 preprocessing protocol](member1_protocol.md), [review](member1_self_review.md) and [table checklist](member1_table_checklist.md)
 - [Member 2 retrieval protocol](member2_stage2_protocol.md), [evaluation protocol](member2_stage3_protocol.md) and [findings](member2_stage3_findings.md)
 - [Stage A review](stage_a_review.md) and [Stage B review](stage_b_review.md)
-- [Stage C review](stage_c_review.md)
+- [Stage C review](stage_c_review.md) and [Stage D review](stage_d_review.md)
 - [Member 3 answer-service contract](member3_stage1_protocol.md)

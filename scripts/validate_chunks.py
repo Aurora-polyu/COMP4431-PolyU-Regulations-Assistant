@@ -5,7 +5,7 @@ Checks performed (see ``docs/member1_protocol.md`` §10):
 
 * exactly the five contract fields, with the right types;
 * unique ``chunk_id`` matching the documented pattern;
-* page numbers inside the ranges of the supplied PDF;
+* page numbers and their correspondence in the supplied PDF;
 * non-empty ``text``;
 * every body page represented by at least one chunk;
 * each chunk's text is a verbatim (whitespace/hyphen-insensitive) substring of its
@@ -102,6 +102,7 @@ def validate(
         max_pdf = document.pdf_page_count
         max_printed = document.max_printed_page
         body_pages = {page.printed_page for page in document.pages}
+        page_map = {page.pdf_page: page.printed_page for page in document.pages}
 
         for index, chunk in enumerate(chunks, start=1):
             if not (1 <= chunk["printed_page"] <= max_printed):
@@ -113,6 +114,17 @@ def validate(
                 errors.append(
                     f"chunk {index} ({chunk['chunk_id']}): pdf_page "
                     f"{chunk['pdf_page']} outside 1..{max_pdf}"
+                )
+            elif chunk["pdf_page"] not in page_map:
+                errors.append(
+                    f"chunk {index} ({chunk['chunk_id']}): PDF page "
+                    f"{chunk['pdf_page']} is not a numbered body page"
+                )
+            elif chunk["printed_page"] != page_map[chunk["pdf_page"]]:
+                errors.append(
+                    f"chunk {index} ({chunk['chunk_id']}): PDF page "
+                    f"{chunk['pdf_page']} has printed page "
+                    f"{page_map[chunk['pdf_page']]}, not {chunk['printed_page']}"
                 )
 
         covered = {chunk["printed_page"] for chunk in chunks}
@@ -146,7 +158,8 @@ def validate(
         if mismatched:
             errors.append(f"pages with integrity failures: {sorted(mismatched)}")
     else:
-        print("note: no PDF supplied, skipping page-range and integrity checks")
+        print("note: no PDF supplied; only schema and chunk-size checks ran "
+              "(page mapping, coverage and text integrity were not checked)")
 
     return errors, warnings
 
@@ -154,12 +167,15 @@ def validate(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--chunks", type=Path, default=REPO_ROOT / "data" / "chunks.jsonl")
-    parser.add_argument("--pdf", type=Path, default=REPO_ROOT / "data" / "handbook.pdf")
+    parser.add_argument("--pdf", type=Path, default=None)
     parser.add_argument("--max-words", type=int, default=450)
     parser.add_argument("--min-words", type=int, default=100)
     args = parser.parse_args(argv)
 
-    pdf = args.pdf if args.pdf.exists() else None
+    if args.pdf is not None and not args.pdf.is_file():
+        parser.error(f"PDF not found: {args.pdf}")
+    default_pdf = REPO_ROOT / "data" / "handbook.pdf"
+    pdf = args.pdf if args.pdf is not None else (default_pdf if default_pdf.is_file() else None)
     errors, warnings = validate(args.chunks, pdf, args.max_words, args.min_words)
 
     if warnings:
@@ -177,7 +193,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  ... and {len(errors) - 40} more")
         return 1
 
-    print(f"OK: {args.chunks} satisfies the Member 1 contract")
+    scope = "satisfies the Member 1 contract" if pdf else "passes schema and chunk-size checks (PDF checks skipped)"
+    print(f"OK: {args.chunks} {scope}")
     return 0
 
 

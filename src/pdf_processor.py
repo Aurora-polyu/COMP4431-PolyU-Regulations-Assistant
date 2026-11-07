@@ -39,6 +39,12 @@ except ImportError as exc:  # pragma: no cover - dependency error path
 #: territory.  Printed page numbers live at roughly y = 810-831 on an 842 pt page.
 FOOTER_ZONE_PT = 70.0
 
+PDF_PAGE_COUNT = 137
+FRONT_MATTER_PAGES = tuple(range(1, 8))
+DIVIDER_PAGES = (8, 10, 14, 18, 39, 49, 62, 67, 78, 82, 84, 97, 127)
+DIVIDER_FOOTERS = {39: 8, 127: 108}
+PRINTED_PAGE_COUNT = 117
+
 #: Font size at or above which a line is a chapter-level heading (22 pt in this file).
 CHAPTER_HEADING_MIN_SIZE = 21.0
 
@@ -228,50 +234,39 @@ def _detect_page_map(doc) -> tuple[dict[int, int], list[int], list[int]]:
     Returns ``(body_pages, front_matter_pages, divider_pages)`` where
     ``body_pages`` maps ``pdf_page -> printed_page``.
 
-    The rule (see protocol §3.3) is: accept a page when its footer equals the next
-    expected printed number *and* the following page does not repeat that number.
-    The second condition rejects decorative numerals on divider pages, e.g. PDF
-    127 displays "108" in its artwork while PDF 128 is the real printed page 108.
+    The documented edition has fixed front matter and divider positions. Check
+    every remaining page against its expected footer, including the final page.
     """
 
     page_count = doc.page_count
-    candidates = {p: _footer_number(doc[p - 1]) for p in range(1, page_count + 1)}
-
-    start = None
-    for p in range(1, page_count + 1):
-        if candidates.get(p) == 1:
-            start = p
-            break
-    if start is None:
+    if page_count != PDF_PAGE_COUNT:
         raise HandbookFormatError(
-            "Could not find the start of the numbered body pages: no page has "
-            "footer '1'. The PDF may be a different edition."
+            f"Expected {PDF_PAGE_COUNT} PDF pages, found {page_count}; "
+            "the handbook edition or page map must be reviewed."
         )
-
     body: dict[int, int] = {}
-    dividers: list[int] = []
     expected = 1
-    for p in range(start, page_count + 1):
-        number = candidates.get(p)
-        if number is None:
-            # Unnumbered page between body pages: a chapter divider.
-            dividers.append(p)
+    for p in range(len(FRONT_MATTER_PAGES) + 1, page_count + 1):
+        number = _footer_number(doc[p - 1])
+        if p in DIVIDER_PAGES:
+            if number != DIVIDER_FOOTERS.get(p):
+                raise HandbookFormatError(
+                    f"PDF page {p}: unexpected divider footer {number!r}; "
+                    f"expected {DIVIDER_FOOTERS.get(p)!r}."
+                )
             continue
-        repeats_next = candidates.get(p + 1) == number
-        if number == expected and not repeats_next:
-            body[p] = number
-            expected += 1
-        else:
-            dividers.append(p)
+        if number != expected:
+            raise HandbookFormatError(
+                f"PDF page {p}: expected printed page {expected}, found {number!r}."
+            )
+        body[p] = number
+        expected += 1
 
-    printed = list(body.values())
-    if printed != list(range(1, len(printed) + 1)):
+    if expected != PRINTED_PAGE_COUNT + 1:
         raise HandbookFormatError(
-            f"Printed page numbers are not a contiguous 1..N sequence: {printed[:20]}..."
+            f"Expected {PRINTED_PAGE_COUNT} numbered pages, found {expected - 1}."
         )
-
-    front_matter = list(range(1, start))
-    return body, front_matter, dividers
+    return body, list(FRONT_MATTER_PAGES), list(DIVIDER_PAGES)
 
 
 def _toc_divider_pages(doc) -> list[int]:
@@ -436,15 +431,7 @@ def extract_handbook(pdf_path: str | Path) -> DocumentModel:
     try:
         body, front_matter, dividers = _detect_page_map(doc)
 
-        toc_dividers = _toc_divider_pages(doc)
-        # A chapter divider can sit after the front matter has technically ended
-        # (PDF 8 is the divider for chapter 1).  Classify it as a divider, not as
-        # front matter, so that the reported page sets match the protocol.
-        front_matter = [page for page in front_matter if page not in toc_dividers]
-        dividers = sorted(set(dividers) | (set(toc_dividers) - set(front_matter)))
-
-        known_non_body = set(dividers) | set(front_matter)
-        unexpected = sorted(set(toc_dividers) - known_non_body)
+        unexpected = sorted(set(_toc_divider_pages(doc)) - set(dividers))
         if unexpected:
             raise HandbookFormatError(
                 "The embedded outline lists chapter divider pages that the footer "

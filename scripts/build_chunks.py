@@ -75,11 +75,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pdf", type=Path, default=REPO_ROOT / "data" / "handbook.pdf")
     parser.add_argument("--out", type=Path, default=REPO_ROOT / "data" / "chunks.jsonl")
-    parser.add_argument("--stats", type=Path, default=REPO_ROOT / "data" / "chunks_stats.json")
-    parser.add_argument("--page-map", type=Path, default=REPO_ROOT / "data" / "page_map.csv")
-    parser.add_argument(
-        "--table-report", type=Path, default=REPO_ROOT / "data" / "table_pages.csv"
-    )
+    parser.add_argument("--stats", type=Path)
+    parser.add_argument("--page-map", type=Path)
+    parser.add_argument("--table-report", type=Path)
     parser.add_argument("--max-words", type=int, default=DEFAULT_MAX_WORDS)
     parser.add_argument("--min-words", type=int, default=DEFAULT_MIN_WORDS)
     parser.add_argument(
@@ -88,6 +86,19 @@ def main(argv: list[str] | None = None) -> int:
         help="Skip the (slow) table scan used for the manual verification checklist.",
     )
     args = parser.parse_args(argv)
+
+    default_out = REPO_ROOT / "data" / "chunks.jsonl"
+    if args.out.resolve() == default_out.resolve():
+        companion_defaults = (REPO_ROOT / "data" / "chunks_stats.json",
+                              REPO_ROOT / "data" / "page_map.csv",
+                              REPO_ROOT / "data" / "table_pages.csv")
+    else:
+        companion_defaults = (args.out.with_name(args.out.stem + "_stats.json"),
+                              args.out.with_name(args.out.stem + "_page_map.csv"),
+                              args.out.with_name(args.out.stem + "_table_pages.csv"))
+    args.stats = args.stats or companion_defaults[0]
+    args.page_map = args.page_map or companion_defaults[1]
+    args.table_report = args.table_report or companion_defaults[2]
 
     if not args.pdf.exists():
         parser.error(
@@ -106,6 +117,10 @@ def main(argv: list[str] | None = None) -> int:
         for chunk in chunks:
             handle.write(json.dumps(chunk.as_dict(), ensure_ascii=False) + "\n")
 
+    args.stats.parent.mkdir(parents=True, exist_ok=True)
+    args.page_map.parent.mkdir(parents=True, exist_ok=True)
+    if not args.no_table_report:
+        args.table_report.parent.mkdir(parents=True, exist_ok=True)
     args.stats.write_text(
         json.dumps(stats, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )

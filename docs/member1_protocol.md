@@ -105,20 +105,16 @@ assume that `pdf_page` values are contiguous. This is expected, not an error.
 
 ### 3.3 Page-map algorithm
 
-1. Read the footer of every page: the bottom-most standalone integer in the bottom
-   70 pt of the page.
-2. Locate the first page whose footer reads `1` and whose successor reads `2`; that
-   is the first body page.
-3. Walk forward accepting a page when its footer equals the next expected number
-   **and** the following page does not carry the same number. Any page that fails
-   this test is a divider (this also catches the divider pages whose large
-   decorative section numeral happens to look like a footer number, e.g. PDF 127
-   shows "108" in decoration while PDF 128 is the real printed page 108).
-4. Validate that the accepted numbers form exactly `1 … max` with no gaps and no
-   duplicates. The build fails loudly if they do not.
+1. Check the documented 137-page document length and use the known front-matter
+   and divider positions in §3.1.
+2. Read each remaining page's bottom-most standalone integer in the bottom 70 pt.
+   Require the exact sequence 1–117, including the final page; missing, repeated,
+   or out-of-order numbers fail the build.
+3. Check the known divider footers, including decorative 8 on PDF page 39 and
+   108 on PDF page 127, without treating them as body pages.
+4. Reject outline divider entries that point outside the documented divider set.
 
-The divider set is cross-checked against level-1 entries of the PDF's embedded
-outline; a mismatch is reported as a warning and does not silently change output.
+Different editions require a page-model review before processing.
 
 ---
 
@@ -295,16 +291,23 @@ rules. The checklist is in `docs/member1_table_checklist.md`.
   `python scripts/build_chunks.py --pdf data/handbook.pdf`. The handbook PDF itself
   should only be committed if the course permits redistribution; otherwise each
   member uses the authorised copy.
+- To check reproducibility without overwriting committed outputs, run
+  `python scripts/build_chunks.py --pdf /path/to/handbook.pdf --out /tmp/chunks_check.jsonl`.
+  The companion files default to `/tmp/chunks_check_stats.json`,
+  `/tmp/chunks_check_page_map.csv`, and `/tmp/chunks_check_table_pages.csv`.
+  `--stats`, `--page-map`, and `--table-report` override those destinations.
+  The normal default build retains the original `data/` filenames.
 
 ---
 
 ## 10. Validation
 
-`scripts/validate_chunks.py` checks, and the build refuses to report success unless:
+With a PDF supplied, `scripts/validate_chunks.py` checks:
 
 - every record has exactly the five contract fields, with the right types;
 - `chunk_id` is unique and matches the ID pattern;
 - `printed_page` ∈ [1, 117] and `pdf_page` ∈ [1, 137];
+- each PDF page is a numbered body page and maps to the chunk's printed page;
 - `text` is non-empty, has no footer artefact, and is not truncated;
 - every body page 1 … 117 is represented by at least one chunk;
 - every chunk's text is a verbatim (whitespace-normalised) substring of its own
@@ -312,6 +315,9 @@ rules. The checklist is in `docs/member1_table_checklist.md`.
   text loss;
 - chunk word counts are within the configured bounds (maximum ×1.2 tolerance for
   an indivisible oversized paragraph).
+
+Without a PDF, the validator reports that page mapping, coverage, and text
+integrity were skipped; only schema and chunk-size checks are performed.
 
 `tests/test_member1_pipeline.py` asserts the page-map facts in §3, the ID scheme,
 schema conformance, page coverage, and text integrity. It runs with `pytest` or

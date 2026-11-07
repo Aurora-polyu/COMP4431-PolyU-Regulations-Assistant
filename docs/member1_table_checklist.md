@@ -66,10 +66,10 @@ fines), 96–100 (opening hours), 108–111 (bad-weather arrangements).
 
 | Rule | Location (printed page) | Value to confirm |
 |---|---|---|
-| Normal study load | 34 / 5.A | 15 credits per semester |
-| Maximum study load | 34 / 5.A | 21 credits per semester |
+| Normal study load | 28 / 5.A | 15 credits per semester |
+| Maximum study load | 28 / 5.A | 21 credits per semester |
 | Retake limit | 33 / 5.C | maximum of two retakes |
-| Probation study load cap | 34 / 5.A | not more than 15 credits |
+| Probation study load cap | 28 / 5.A | not more than 15 credits |
 | Maximum registration period | 14 / 4.E | normally twice normal duration, never more than 8 years |
 | Caution money | 61 / 8.I | HK$400 |
 | Late assessment / appeal fees | 56–57, 62 | check each figure |

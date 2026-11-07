@@ -63,4 +63,6 @@ for chunk in retrieve("How do I request temporary leave?", top_k=5):
 
 Blank queries return `[]`; non-positive limits raise `ValueError`. Missing, stale, incompatible, or unreadable indexes and unavailable local models raise `RetrievalError` with troubleshooting context. If the source, model, or index is unavailable, restore it and rebuild; do not silently fall back to synthetic data. Search scores are ranking signals, not probabilities or proof of evidence relevance.
 
+Import the shared `RetrievedChunk` and `RetrievalError` types from `src.contracts` without installing the retrieval dependencies. An empty result for a nonblank query means no passage was retrieved, not an infrastructure error; returned passages still need to be checked for relevance and support. Callers may issue multiple queries and deduplicate combined results by `chunk_id`. An index built with the default input contains fictional samples and must not be used as handbook evidence.
+
 Before integration, Member 1 must supply validated handbook chunks with the Stage 1 fields and page mapping, and Member 2 must build a separate index from them. Members 1 and 3 should confirm the contract and handoff; the existing mock remains available for independent development. The synthetic smoke checks are not a handbook benchmark.

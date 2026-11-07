@@ -68,6 +68,7 @@ class IntegrationTests(unittest.TestCase):
                 self.assertEqual(results[0], chunks[0])
                 self.assertEqual(len({c["chunk_id"] for c in results}), 3)
                 self.assertEqual(len(retrieve("leave", 1)), 1)
+                loader.assert_called_once()
                 _load.cache_clear()
                 loader.return_value = FakeModel("b" * 40)
                 with self.assertRaisesRegex(RetrievalError, "revision differs"):

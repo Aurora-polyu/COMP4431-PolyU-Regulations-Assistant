@@ -7,7 +7,7 @@ import re
 from functools import lru_cache
 from pathlib import Path
 
-from src.mock_retriever import RetrievedChunk
+from src.contracts import RetrievalError, RetrievedChunk
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_INDEX = ROOT / "chroma_db"
@@ -15,10 +15,6 @@ DEFAULT_MODEL = "BAAI/bge-small-en-v1.5"
 QUERY_PREFIX = "Represent this sentence for searching relevant passages: "
 COLLECTION = "chunks"
 FORMAT_VERSION = 2
-
-
-class RetrievalError(RuntimeError):
-    """An index or model is unavailable or incompatible; rebuild or reconfigure it."""
 
 
 def file_hash(path: Path) -> str:

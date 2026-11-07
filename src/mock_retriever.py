@@ -6,15 +6,7 @@ They are fictional examples and must never be treated as handbook evidence.
 
 import json
 from pathlib import Path
-from typing import TypedDict
-
-
-class RetrievedChunk(TypedDict):
-    chunk_id: str
-    section: str
-    printed_page: int
-    pdf_page: int
-    text: str
+from src.contracts import RetrievalError, RetrievedChunk
 
 
 _SAMPLE_PATH = Path(__file__).resolve().parent.parent / "data" / "sample_chunks.json"

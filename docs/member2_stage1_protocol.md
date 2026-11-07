@@ -18,6 +18,8 @@ Each chunk contains:
 
 Member 1 should confirm this contract and provide validated chunks with correct page mapping. The current example values are fictional and are not handbook regulations.
 
+Import `RetrievedChunk` and `RetrievalError` from `src.contracts`; this module has no third-party dependencies. Both retrievers retain their existing type import paths for compatibility. A non-positive `top_k` raises `ValueError` (even for a blank query). A blank query returns `[]`; an empty result for a nonblank query means no passage was retrieved, not an infrastructure error. The real retriever raises `RetrievalError` for index, model, or search failures. Returned passages must still be checked for relevance and evidential support.
+
 ## Workflow and handoff
 
 1. Review the contract above with Member 1 and coordinate any change with Member 3.

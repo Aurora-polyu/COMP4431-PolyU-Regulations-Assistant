@@ -4,7 +4,7 @@
 
 Freeze the contract for the conversation and answer service so that Member 2, Member 4 and the evaluation work can all develop against it, and return a review of the Member 2 Stage 1 retrieval contract. This stage does not call the language model yet; the service is developed against `src/mock_retriever.py`, whose chunks are fictional and must never be presented as handbook evidence.
 
-Member 3 owns the DeepSeek client, prompt constraints, follow-up context handling, selective clarification, answer composition, citation validation and `answer_question()`.
+Member 3 owns the model provider client, prompt constraints, follow-up context handling, selective clarification, answer composition, citation validation and `answer_question()`.
 
 ## Confirmation of the Member 2 Stage 1 contract
 
@@ -127,8 +127,8 @@ Membership is necessary but not sufficient: a valid `chunk_id` does not prove th
 
 ## Environment
 
-- `DEEPSEEK_API_KEY` in a local `.env`, which is already ignored by `.gitignore`. No key is committed, quoted in chat, or written into code.
-- The answer model is `deepseek-flash` (V4.1 Flash). The same account also exposes `deepseek-v4-pro`; the team chose Flash for speed and cost.
+- `MODEL_API_KEY` in a local `.env`, which is already ignored by `.gitignore`. No key is committed, quoted in chat, or written into code.
+- The answer model is `deepseek-flash` (V4.1 Flash). The same account also exposes a reasoning model; the team chose Flash for speed and cost.
 - Both models are reasoning models: reasoning tokens count against `max_tokens`, and a budget that covers only the visible answer returns empty content. The client default is 1500 tokens and the follow-up rewrite uses 400. Empty content and invalid JSON retry once.
 - A `.env.example` with placeholder values is committed so that setup is reproducible.
 
@@ -158,7 +158,7 @@ Latency on this machine was 1.3 to 2.9 s per answer, excluding retrieval. The re
 - Member 2: issues 1 to 6 above, and confirmation that the Stage 1 contract is otherwise unchanged.
 - Member 1: contract confirmation and the printed-page mapping (issue 5).
 - Member 4: response shape and the optional `evidence_source` field.
-- Team: exact DeepSeek model identifier and endpoint.
+- Team: exact model identifier and endpoint.
 
 ## Stage 1 checklist
 
@@ -166,7 +166,7 @@ Latency on this machine was 1.3 to 2.9 s per answer, excluding retrieval. The re
 - [x] Integration issues and proposed changes recorded.
 - [x] Answer-service contract, statuses and citation rules documented.
 - [x] `src/contracts.py` added by Member 2 in `dc1843b`; import direction and error semantics resolved.
-- [x] DeepSeek model identifier confirmed as `deepseek-flash` (V4.1 Flash).
+- [x] model identifier confirmed as `deepseek-flash` (V4.1 Flash).
 - [x] Answer service implemented against the mock: `src/conversation.py`, `src/citations.py`, `src/llm_client.py`, 30 unit tests passing.
 - [x] Independent review completed; findings fixed. Ungrounded text can no longer escape through the clarification branch, one contaminated fixture chunk now flags the whole answer, retrieval `ValueError` and connection resets map to `status: "error"`, malformed model output is reported as an error rather than a coverage gap, and the HTTP client has tests.
-- [ ] End-to-end run against the real retriever and the real DeepSeek model, once the key and the handbook index exist. The default retrieval import used by the service resolves only after `feature/retrieval` is merged.
+- [ ] End-to-end run against the real retriever and the real model provider model, once the key and the handbook index exist. The default retrieval import used by the service resolves only after `feature/retrieval` is merged.

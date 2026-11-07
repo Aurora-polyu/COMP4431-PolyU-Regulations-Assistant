@@ -8,9 +8,9 @@
 
 ## Configuration and provenance
 
-The approved PDF and chunks were rechecked: PDF SHA-256 `4fb771304c1d1ae17f2e2d1187b8878d2e0942966959eda1b3bfbbc48cf9a464`; chunks SHA-256 `4c9ba414555b6fd35a184088f8768cdd2d98fb296fbe7f4522f37704e4683bc3`. The unchanged Stage B index at `/private/tmp/gp-stage-b-index.pTotFHEc` has generation `5d8469f9af98404396d5153ac7578419`, 186 chunks, the matching absolute source path and hash, and model `BAAI/bge-small-en-v1.5` at revision `5c38ec7c405ec4b44b94cc5a9bb96e735b38267a`. This is temporary storage and may be removed by the operating system. Python 3.12.13 in the project `.venv` and DeepSeek model `deepseek-flash` were used. The API key was loaded locally; it was not recorded.
+The approved PDF and chunks were rechecked: PDF SHA-256 `4fb771304c1d1ae17f2e2d1187b8878d2e0942966959eda1b3bfbbc48cf9a464`; chunks SHA-256 `4c9ba414555b6fd35a184088f8768cdd2d98fb296fbe7f4522f37704e4683bc3`. The unchanged Stage B index at `/private/tmp/gp-stage-b-index.pTotFHEc` has generation `5d8469f9af98404396d5153ac7578419`, 186 chunks, the matching absolute source path and hash, and model `BAAI/bge-small-en-v1.5` at revision `5c38ec7c405ec4b44b94cc5a9bb96e735b38267a`. This is temporary storage and may be removed by the operating system. Python 3.12.13 in the project `.venv` and model `deepseek-flash` were used. The API key was loaded locally; it was not recorded.
 
-The live process set `RETRIEVAL_INDEX_DIR` before startup, cleared `RETRIEVAL_BACKEND` and `RETRIEVAL_MODEL`, and used `HF_HUB_OFFLINE=1`. The real retriever was wrapped only to record its query and exact returned records; the actual answer service and DeepSeek client were used. Retrieval configuration must be set in the process environment before startup because the retriever is selected before the client loads `.env` on the first call.
+The live process set `RETRIEVAL_INDEX_DIR` before startup, cleared `RETRIEVAL_BACKEND` and `RETRIEVAL_MODEL`, and used `HF_HUB_OFFLINE=1`. The real retriever was wrapped only to record its query and exact returned records; the actual answer service and model client were used. Retrieval configuration must be set in the process environment before startup because the retriever is selected before the client loads `.env` on the first call.
 
 ## Live checks
 

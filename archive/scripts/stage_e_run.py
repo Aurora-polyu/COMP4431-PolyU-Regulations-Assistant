@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from src.conversation import answer_question
-from src.llm_client import DeepSeekClient
+from src.llm_client import ModelClient
 from src.retriever import retrieve
 
 
@@ -64,7 +64,7 @@ def main():
         p.error('Index is not tied to the approved local chunks.')
     if len(questions['cases']) != 30:
         p.error('Expected exactly 30 reviewed cases.')
-    client = DeepSeekClient()
+    client = ModelClient()
     metadata = {'type':'metadata', 'timestamp_utc':datetime.now(timezone.utc).isoformat(), 'reviewer':args.reviewer,
                 'questions_sha256':digest(source), 'pdf_sha256':questions['source_pdf_sha256'], 'chunks_sha256':questions['chunks_sha256'],
                 'commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),

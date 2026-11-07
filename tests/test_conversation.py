@@ -211,7 +211,7 @@ class AnswerServiceTests(unittest.TestCase):
                 self.assertEqual(result["status"], "error")
 
     def test_model_error_returns_error_status(self):
-        llm = FakeLlm(LlmError("DeepSeek returned HTTP 401"))
+        llm = FakeLlm(LlmError("Model provider returned HTTP 401"))
         result = answer_question("Can I retake a failed subject?", retrieve=fake_retriever(CHUNKS), llm=llm)
         self.assertEqual(result["status"], "error")
         self.assertIn("401", result["answer"])

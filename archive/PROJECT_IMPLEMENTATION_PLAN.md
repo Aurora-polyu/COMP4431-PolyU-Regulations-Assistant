@@ -31,7 +31,7 @@ Local embedding model + ChromaDB vector index
 Student message -> follow-up-aware retrieval query -> vector search + BM25
                                              -> RRF fusion -> evidence chunks
                                                               |
-Conversation history -----------------------------------------> DeepSeek V4 Pro
+Conversation history -----------------------------------------> a reasoning model
                                                               |
                                               evidence-based answer + cited chunk IDs
                                                               |
@@ -51,7 +51,7 @@ Conversation history -----------------------------------------> DeepSeek V4 Pro
 | Vector store | ChromaDB | Store chunk text as documents; metadata separately |
 | Keyword retrieval | BM25 | English tokenization; preserve form IDs such as AR160 |
 | Fusion | Reciprocal Rank Fusion (RRF) | Merge vector and BM25 rankings; deduplicate by `chunk_id` |
-| Answer generation | DeepSeek V4.1 Flash API (`deepseek-flash`) | The team's account exposes `deepseek-flash` and `deepseek-v4-pro`; the team chose the Flash model for speed and cost. Configure with environment variables |
+| Answer generation | model API (`deepseek-flash`) | The team's account exposes `deepseek-flash` and a reasoning model; the team chose the Flash model for speed and cost. Configure with environment variables |
 | Secrets | `.env` per developer | Never commit keys or rotate keys in code; shared account, distinct individual keys if available |
 | Factual data | The supplied handbook only | No network or general LLM knowledge as a factual authority |
 
@@ -113,7 +113,7 @@ Render the answer, section, printed page, and an `st.expander` with **the comple
 |---|---|---|
 | **Member 1 — Handbook Processing & Data** | PDF extraction, section/page mapping, chunking, and manual checks of tables and numerical rules | Reproducible preprocessing produces validated chunks with stable IDs and correct metadata |
 | **Member 2 — Search & Retrieval** | Local embeddings, ChromaDB, BM25, RRF, index build, and `retrieve()` | Reproducible index build; ranked, deduplicated retrieval passes smoke tests |
-| **Member 3 — LLM & Conversation** | DeepSeek client, prompt constraints, follow-up context, selective clarification, answer composition, citation validation, and `answer_question()` | Works with mock retrieved passages and handles missing evidence and follow-ups without fabricating rules |
+| **Member 3 — LLM & Conversation** | model provider client, prompt constraints, follow-up context, selective clarification, answer composition, citation validation, and `answer_question()` | Works with mock retrieved passages and handles missing evidence and follow-ups without fabricating rules |
 | **Member 4 — UI & Integration** | Streamlit interface, expandable citations, session handling, end-to-end wiring, and error messages | Clean local chat experience with working full-source expanders and New Conversation |
 
 **Shared responsibility:** All four members create and manually verify the evaluation questions, test the integrated system, and fix failures in their own modules. Share presentation, slides, recorded demo, and rehearsal work; designate one member to coordinate the final materials.
@@ -183,7 +183,7 @@ COMP4431-PolyU-Assistant/
 - [ ] The exact 2026/27 handbook is the only regulatory knowledge source.
 - [ ] Preprocessing is reproducible and retains correct printed/PDF page metadata.
 - [ ] Hybrid retrieval finds both paraphrases and exact regulation/form IDs.
-- [ ] DeepSeek answers strictly from retrieved evidence and uses selective clarification.
+- [ ] model provider answers strictly from retrieved evidence and uses selective clarification.
 - [ ] The UI displays full retrieved chunks in expandable citation sections.
 - [ ] API keys are never stored in tracked files.
 - [ ] All 30 benchmark questions are run and results are recorded honestly.
@@ -192,7 +192,7 @@ COMP4431-PolyU-Assistant/
 
 ## 8. Pending technical checks (not scope changes)
 
-- Confirmed: the DeepSeek account exposes `deepseek-flash` and `deepseek-v4-pro`; the team chose `deepseek-flash` (V4.1 Flash) as the answer model.
+- Confirmed: the model provider account exposes `deepseek-flash` and a reasoning model; the team chose `deepseek-flash` (V4.1 Flash) as the answer model.
 - Pick the final local English embedding model after a small retrieval smoke test.
 - Verify table extraction, pagination, source version, and exact numeric rules against the PDF.
 - Confirm GitHub repository access and handbook distribution permissions.

@@ -9,7 +9,7 @@ import json
 import re
 
 from src.citations import format_evidence, is_fixture, validate_citations
-from src.llm_client import DeepSeekClient, LlmError
+from src.llm_client import ModelClient, LlmError
 
 MAX_HISTORY_TURNS = 6
 TOP_K = 5
@@ -116,7 +116,7 @@ def build_retrieval_query(question: str, history: list[dict], llm) -> str:
         {"role": "user", "content": f"{transcript}\n\nLatest message: {question}"},
     ]
     try:
-        # deepseek-v4-pro spends reasoning tokens before any content, so the
+        # A reasoning model spends reasoning tokens before any content, so the
         # budget must cover the thinking as well as the one-line query.
         rewritten = llm.complete(messages, max_tokens=400).strip()
     except LlmError:
@@ -177,7 +177,7 @@ def answer_question(
     """Answer one question from retrieved handbook evidence.
 
     `retrieve` and `llm` are injectable for tests. Without them the service
-    uses the handbook retriever and DeepSeek.
+    uses the handbook retriever and the model provider.
     """
     if not isinstance(question, str) or not question.strip():
         raise ValueError("question must be a nonblank string")
@@ -195,7 +195,7 @@ def answer_question(
 
     if llm is None:
         try:
-            llm = DeepSeekClient()
+            llm = ModelClient()
         except LlmError as exc:
             return _response(status="error", answer=str(exc))
 

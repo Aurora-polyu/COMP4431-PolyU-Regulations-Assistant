@@ -26,7 +26,7 @@ does not embed, index, retrieve, or answer questions.
 Out of scope for this stage (handled elsewhere):
 
 - embeddings, ChromaDB, BM25, RRF, retrieval (Member 2)
-- prompt design, DeepSeek calls, citation validation (Member 3)
+- prompt design, model provider calls, citation validation (Member 3)
 - Streamlit rendering (Member 4)
 - programme-specific requirements external to the handbook
 

@@ -84,11 +84,11 @@ def _new_chat():
 def _safe_error(answer):
     """Map service failures to fixed guidance without displaying raw details."""
     text = answer.removeprefix(FIXTURE_WARNING).strip()
-    if text.startswith("DEEPSEEK_API_KEY is not set."):
-        return "The DeepSeek API key is not configured. Add it to your local .env file and restart the app."
+    if text.startswith("MODEL_API_KEY is not set."):
+        return "The model provider API key is not configured. Add it to your local .env file and restart the app."
     if text.startswith(("Retrieval failed:", "Retrieval is not available:")):
         return "The handbook search is unavailable. Check the selected index and rebuild it if needed; see the setup guide."
-    if text.startswith(("DeepSeek returned HTTP", "Could not reach DeepSeek")):
+    if text.startswith(("Model provider returned HTTP", "Could not reach the model provider")):
         return "The answer service is unavailable. Check your API configuration and connection, then try again."
     return "The answer service could not complete the request. Please try again and check the setup guide if the problem continues."
 

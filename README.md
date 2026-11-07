@@ -6,7 +6,7 @@ A COMP4431 retrieval-augmented generation (RAG) project that answers questions a
 
 ## Local setup
 
-You need Python 3.12 and an API key for DeepSeek or a compatible chat-completions provider.
+You need Python 3.12 and an API key for a compatible chat-completions provider.
 
 ```sh
 python3.12 -m venv .venv
@@ -15,7 +15,7 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Add your API key as `DEEPSEEK_API_KEY` in `.env`. The default provider is DeepSeek and the default model is `deepseek-flash`. To use a compatible provider, set `DEEPSEEK_BASE_URL` to its API base URL and `DEEPSEEK_MODEL` to its model name; the app uses the provider's `/chat/completions` endpoint.
+Add your API key as `MODEL_API_KEY` in `.env`. The default model is `deepseek-flash`. To use a compatible provider, set `MODEL_BASE_URL` to its API base URL and `MODEL_NAME` to its model name; the app uses the provider's `/chat/completions` endpoint.
 
 Build the search index from the included handbook passages, then start the app:
 

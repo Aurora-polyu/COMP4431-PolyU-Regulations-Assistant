@@ -6,7 +6,7 @@ import urllib.error
 from pathlib import Path
 from unittest.mock import patch
 
-from src.llm_client import DeepSeekClient, LlmError, load_env_file
+from src.llm_client import ModelClient, LlmError, load_env_file
 
 
 class FakeResponse:
@@ -26,7 +26,7 @@ class FakeResponse:
 def http_error(code: int, message: str) -> urllib.error.HTTPError:
     body = f'{{"error": {{"message": "{message}"}}}}'.encode()
     return urllib.error.HTTPError(
-        "https://api.deepseek.com/chat/completions", code, message, {}, io.BytesIO(body)
+        "https://example.com/chat/completions", code, message, {}, io.BytesIO(body)
     )
 
 
@@ -34,15 +34,21 @@ OK_BODY = b'{"choices": [{"message": {"content": "hello"}}]}'
 
 
 class ClientTests(unittest.TestCase):
+    def test_model_configuration_uses_generic_environment_variables(self):
+        settings = {"MODEL_API_KEY": "test-key", "MODEL_BASE_URL": "https://example.com/", "MODEL_NAME": "test-model"}
+        with patch.dict(os.environ, settings, clear=True), patch("src.llm_client.load_env_file"):
+            client = ModelClient()
+        self.assertEqual((client.api_key, client.base_url, client.model), ("test-key", "https://example.com", "test-model"))
+
     def test_missing_key_is_reported(self):
         with patch.dict(os.environ, {}, clear=True), patch("src.llm_client.load_env_file"):
             with self.assertRaises(LlmError) as ctx:
-                DeepSeekClient()
-        self.assertIn("DEEPSEEK_API_KEY", str(ctx.exception))
+                ModelClient()
+        self.assertIn("MODEL_API_KEY", str(ctx.exception))
 
     def test_successful_completion(self):
         with patch("src.llm_client.urllib.request.urlopen", return_value=FakeResponse(OK_BODY)) as call:
-            client = DeepSeekClient(api_key="test-key")
+            client = ModelClient(api_key="test-key")
             self.assertEqual(client.complete([{"role": "user", "content": "hi"}]), "hello")
         self.assertEqual(call.call_count, 1)
 
@@ -51,7 +57,7 @@ class ClientTests(unittest.TestCase):
         with patch("src.llm_client.urllib.request.urlopen", side_effect=error) as call, patch(
             "src.llm_client.time.sleep"
         ):
-            client = DeepSeekClient(api_key="bad-key")
+            client = ModelClient(api_key="bad-key")
             with self.assertRaises(LlmError) as ctx:
                 client.complete([{"role": "user", "content": "hi"}])
         self.assertEqual(call.call_count, 1)
@@ -61,7 +67,7 @@ class ClientTests(unittest.TestCase):
         with patch(
             "src.llm_client.urllib.request.urlopen", side_effect=[http_error(500, "boom"), http_error(500, "boom")]
         ) as call, patch("src.llm_client.time.sleep"):
-            client = DeepSeekClient(api_key="test-key")
+            client = ModelClient(api_key="test-key")
             with self.assertRaises(LlmError):
                 client.complete([{"role": "user", "content": "hi"}])
         self.assertEqual(call.call_count, 2)
@@ -70,7 +76,7 @@ class ClientTests(unittest.TestCase):
         with patch("src.llm_client.urllib.request.urlopen", side_effect=ConnectionResetError("reset")) as call, patch(
             "src.llm_client.time.sleep"
         ):
-            client = DeepSeekClient(api_key="test-key")
+            client = ModelClient(api_key="test-key")
             with self.assertRaises(LlmError):
                 client.complete([{"role": "user", "content": "hi"}])
         self.assertEqual(call.call_count, 2)
@@ -78,18 +84,18 @@ class ClientTests(unittest.TestCase):
     def test_empty_content_is_rejected(self):
         body = b'{"choices": [{"message": {"content": "   "}}]}'
         with patch("src.llm_client.urllib.request.urlopen", return_value=FakeResponse(body)):
-            client = DeepSeekClient(api_key="test-key")
+            client = ModelClient(api_key="test-key")
             with self.assertRaises(LlmError):
                 client.complete([{"role": "user", "content": "hi"}])
 
     def test_env_file_is_loaded_without_overriding(self):
         with tempfile.TemporaryDirectory() as tmp:
             env_file = Path(tmp) / ".env"
-            env_file.write_text('DEEPSEEK_API_KEY="from-file"\n# comment\nBADLINE\n', encoding="utf-8")
-            with patch.dict(os.environ, {"DEEPSEEK_KEEP": "existing"}, clear=True):
+            env_file.write_text('MODEL_API_KEY="from-file"\n# comment\nBADLINE\n', encoding="utf-8")
+            with patch.dict(os.environ, {"MODEL_KEEP": "existing"}, clear=True):
                 load_env_file(env_file)
-                self.assertEqual(os.environ["DEEPSEEK_API_KEY"], "from-file")
-                self.assertEqual(os.environ["DEEPSEEK_KEEP"], "existing")
+                self.assertEqual(os.environ["MODEL_API_KEY"], "from-file")
+                self.assertEqual(os.environ["MODEL_KEEP"], "existing")
 
 
 if __name__ == "__main__":

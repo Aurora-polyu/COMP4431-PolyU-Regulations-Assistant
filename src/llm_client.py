@@ -1,4 +1,4 @@
-"""Minimal DeepSeek chat client used by the answer service.
+"""Minimal model provider chat client used by the answer service.
 
 The key is read from the local .env file or the environment. It is never
 written to code, logs or the repository.
@@ -37,7 +37,7 @@ def load_env_file(path: Path | None = None) -> None:
             os.environ.setdefault(key, value.strip().strip("\"'"))
 
 
-class DeepSeekClient:
+class ModelClient:
     def __init__(
         self,
         api_key: str | None = None,
@@ -46,16 +46,16 @@ class DeepSeekClient:
         timeout: int = DEFAULT_TIMEOUT,
     ) -> None:
         load_env_file()
-        self.api_key = api_key or os.environ.get("DEEPSEEK_API_KEY", "")
+        self.api_key = api_key or os.environ.get("MODEL_API_KEY", "")
         self.base_url = (
-            base_url or os.environ.get("DEEPSEEK_BASE_URL") or DEFAULT_BASE_URL
+            base_url or os.environ.get("MODEL_BASE_URL") or DEFAULT_BASE_URL
         ).rstrip("/")
-        self.model = model or os.environ.get("DEEPSEEK_MODEL") or DEFAULT_MODEL
+        self.model = model or os.environ.get("MODEL_NAME") or DEFAULT_MODEL
         self.timeout = timeout
         if not self.api_key:
             raise LlmError(
-                "DEEPSEEK_API_KEY is not set. Create a local .env file with "
-                "DEEPSEEK_API_KEY=<your key> and restart the app."
+                "MODEL_API_KEY is not set. Create a local .env file with "
+                "MODEL_API_KEY=<your key> and restart the app."
             )
 
     def complete(
@@ -67,7 +67,7 @@ class DeepSeekClient:
     ) -> str:
         """Return the assistant message content for the given chat messages.
 
-        The budget covers reasoning tokens as well, because deepseek-v4-pro
+        The budget covers reasoning tokens as well, because a reasoning model
         thinks before it writes; too small a value returns empty content.
         """
         payload = {
@@ -105,15 +105,15 @@ class DeepSeekClient:
                 return json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             detail = self._error_detail(exc)
-            error = LlmError(f"DeepSeek returned HTTP {exc.code}: {detail}")
+            error = LlmError(f"Model provider returned HTTP {exc.code}: {detail}")
             error.retryable = exc.code >= 500 or exc.code == 429
             raise error from exc
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
-            error = LlmError("DeepSeek returned a response that is not valid JSON")
+            error = LlmError("Model provider returned a response that is not valid JSON")
             error.retryable = True
             raise error from exc
         except (urllib.error.URLError, TimeoutError, OSError, http.client.HTTPException) as exc:
-            error = LlmError(f"Could not reach DeepSeek at {self.base_url}: {exc}")
+            error = LlmError(f"Could not reach the model provider at {self.base_url}: {exc}")
             error.retryable = True
             raise error from exc
 
@@ -130,9 +130,9 @@ class DeepSeekClient:
         try:
             content = body["choices"][0]["message"]["content"]
         except (KeyError, IndexError, TypeError) as exc:
-            raise LlmError("DeepSeek response did not contain an assistant message") from exc
+            raise LlmError("Model provider response did not contain an assistant message") from exc
         if not isinstance(content, str) or not content.strip():
-            error = LlmError("DeepSeek returned an empty answer")
+            error = LlmError("Model provider returned an empty answer")
             error.retryable = True
             raise error
         return content

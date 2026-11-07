@@ -127,8 +127,23 @@ Membership is necessary but not sufficient: a valid `chunk_id` does not prove th
 ## Environment
 
 - `DEEPSEEK_API_KEY` in a local `.env`, which is already ignored by `.gitignore`. No key is committed, quoted in chat, or written into code.
-- The exact DeepSeek API model identifier is still to be confirmed against the team's account, as recorded in the project plan.
-- A `.env.example` with placeholder values will be added so that setup is reproducible.
+- The model identifier is confirmed: `deepseek-v4-pro`. The account also exposes `deepseek-flash`, but a quick request with the same shape returned empty content, so it is not used.
+- `deepseek-v4-pro` is a reasoning model: its reasoning tokens count against `max_tokens`, and a budget that covers only the visible answer returns empty content. The client default is 1500 tokens and the follow-up rewrite uses 400.
+- A `.env.example` with placeholder values is committed so that setup is reproducible.
+
+## Live test record (2026-11-07)
+
+First real calls to DeepSeek through `answer_question()`, using hand-supplied fictional chunks in place of the retriever (the retrieval branch is not merged into `feature/llm` yet).
+
+| Case | Result |
+|---|---|
+| Covered question ("How can a student take temporary leave?") | `answered`, one validated citation, fixture warning shown, about 4 s. |
+| Uncovered question ("What is the tuition fee for 2026/27?") | `insufficient_evidence`, no citation, no invented answer, about 2 s. |
+| Follow-up ("And what do I do when I come back?") | Query rewritten from 80-token budget failure to 400; retrieval query became "What does a student do when returning from temporary leave?"; the correct passage was cited, about 6 to 12 s. |
+
+The 80-token rewrite budget was the only real failure found: every token went to reasoning and the content came back empty, so the service silently used its concatenation fallback. This is exactly why the empty-content case raises an error rather than returning an empty string.
+
+Latency is for one answer or one follow-up on the V4 Pro model and excludes retrieval. The live demo should warm both the retriever and the model before the five-minute window starts.
 
 ## Pending confirmations
 
@@ -143,7 +158,7 @@ Membership is necessary but not sufficient: a valid `chunk_id` does not prove th
 - [x] Integration issues and proposed changes recorded.
 - [x] Answer-service contract, statuses and citation rules documented.
 - [x] `src/contracts.py` added by Member 2 in `dc1843b`; import direction and error semantics resolved.
-- [ ] Team confirms the DeepSeek model identifier.
+- [x] DeepSeek model identifier confirmed as `deepseek-v4-pro`.
 - [x] Answer service implemented against the mock: `src/conversation.py`, `src/citations.py`, `src/llm_client.py`, 30 unit tests passing.
 - [x] Independent review completed; findings fixed. Ungrounded text can no longer escape through the clarification branch, one contaminated fixture chunk now flags the whole answer, retrieval `ValueError` and connection resets map to `status: "error"`, malformed model output is reported as an error rather than a coverage gap, and the HTTP client has tests.
 - [ ] End-to-end run against the real retriever and the real DeepSeek model, once the key and the handbook index exist. The default retrieval import used by the service resolves only after `feature/retrieval` is merged.

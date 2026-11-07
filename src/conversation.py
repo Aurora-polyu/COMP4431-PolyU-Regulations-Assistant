@@ -112,7 +112,9 @@ def build_retrieval_query(question: str, history: list[dict], llm) -> str:
         {"role": "user", "content": f"{transcript}\n\nLatest message: {question}"},
     ]
     try:
-        rewritten = llm.complete(messages, max_tokens=80).strip()
+        # deepseek-v4-pro spends reasoning tokens before any content, so the
+        # budget must cover the thinking as well as the one-line query.
+        rewritten = llm.complete(messages, max_tokens=400).strip()
     except LlmError:
         return _fallback_query(question, history)
     rewritten = rewritten.splitlines()[0].strip().strip("\"'")

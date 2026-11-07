@@ -14,7 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_BASE_URL = "https://api.deepseek.com"
-DEFAULT_MODEL = "deepseek-chat"
+DEFAULT_MODEL = "deepseek-v4-pro"
 DEFAULT_TIMEOUT = 60
 
 
@@ -62,10 +62,14 @@ class DeepSeekClient:
         self,
         messages: list[dict],
         *,
-        max_tokens: int = 800,
+        max_tokens: int = 1500,
         temperature: float = 0.0,
     ) -> str:
-        """Return the assistant message content for the given chat messages."""
+        """Return the assistant message content for the given chat messages.
+
+        The budget covers reasoning tokens as well, because deepseek-v4-pro
+        thinks before it writes; too small a value returns empty content.
+        """
         payload = {
             "model": self.model,
             "messages": messages,

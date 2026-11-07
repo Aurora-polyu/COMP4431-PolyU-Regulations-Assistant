@@ -6,166 +6,72 @@ from src.conversation import FIXTURE_WARNING, NO_EVIDENCE_ANSWER, answer_questio
 
 st.set_page_config(
     page_title="PolyU Academic Regulations Assistant",
-    page_icon="polyu_logo.png",
+    page_icon="polyu_logo.svg",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 TITLE = "PolyU Academic Regulations Assistant"
-SUBTITLE = "Ask about academic rules, deadlines, or eligibility using the student handbook."
-EXAMPLES = [
-    "When is the add/drop period?",
-    "What happens if I fail a subject?",
-    "Can I withdraw after the deadline?",
-]
+MOTTO = "To learn and to apply, for the benefit of mankind."
 
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap');
-
-    :root {
-        --red:       #9E2435;
-        --red-deep:  #7C1D2A;
-        --red-dark:  #5E1520;
-        --red-bright:#B23143;
-        --red-tint:  #F7EBED;
-        --ink:       #2B2B2D;
-        --gray:      #5C5C5E;
-        --hairline:  #E7E0DD;
-        --paper:     #FCFBFA;
-        --serif: "Cormorant Garamond", Georgia, serif;
+    @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@600&display=swap');
+    :root { --red: #9E2435; --red-deep: #7C1D2A; --ink: #2B2B2D; }
+    html, body, [data-testid="stAppViewContainer"] { font-family: Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    [data-testid="stAppViewContainer"], [data-testid="stHeader"] { background: #FFFFFF; }
+    [data-testid="stMainBlockContainer"] { max-width: 880px; padding-top: 32px; padding-bottom: 32px; }
+    [data-testid="stSidebar"] { background: #F7F5F4; min-width: 320px; max-width: 320px; transform: none !important; margin-left: 0 !important; visibility: visible !important; }
+    [data-testid="stSidebarHeader"], [data-testid="stExpandSidebarButton"], [data-testid="collapsedControl"] { display: none !important; }
+    [data-testid="stSidebarContent"] { padding: 24px; display: flex; flex-direction: column; }
+    [data-testid="stSidebarUserContent"] { flex: 1; padding-bottom: 0; }
+    [data-testid="stSidebarUserContent"] > div { height: 100%; }
+    [data-testid="stSidebarUserContent"] > div > [data-testid="stVerticalBlock"] { min-height: 100%; }
+    [data-testid="stSidebarUserContent"] [data-testid="stLayoutWrapper"]:has(> .st-key-handbook_footer) { margin-top: auto; }
+    .st-key-sidebar_picture [data-testid="stFullScreenFrame"] { display: flex; justify-content: center; }
+    .st-key-sidebar_picture img { display: block; width: auto !important; max-width: 100%; max-height: 300px; height: auto; margin: 0 auto; }
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: 16px; }
+    [data-testid="stSidebar"] [data-testid="stMarkdown"] p { font-size: 14px; line-height: 1.55; }
+    [data-testid="stSidebar"] [data-testid="stMarkdown"] strong { font-size: 15px; }
+    [data-testid="stSidebar"] [data-testid="stButton"] button {
+        width: 100%; margin-top: 16px; color: white; background: var(--red); border: 0; border-radius: 8px;
     }
-
-
-    html, body, [class*="css"], .stMarkdown, .stText {
-        font-family: var(--serif);
-        color: var(--ink);
+    [data-testid="stSidebar"] [data-testid="stButton"] button:hover { background: var(--red-deep); color: white; }
+    .sidebar-title { font-family: "Source Sans 3", sans-serif; font-size: 21px; font-weight: 600; line-height: 1.3; overflow-wrap: break-word; color: var(--ink); }
+    .welcome { margin: 50vh auto 32px; max-width: 700px; text-align: center; font-size: 24px; font-weight: 600; line-height: 1.4; color: #77777A; }
+    [data-testid="stChatMessage"] { background: transparent; padding: 0; margin: 16px 0; }
+    [data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) { flex-direction: row-reverse; }
+    [data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) [data-testid="stChatMessageContent"] {
+        flex: 0 1 auto; width: fit-content; max-width: 80%; margin: 0; background: #F7F5F4; border-radius: 20px; padding: 8px 16px;
     }
-    [data-testid="stAppViewContainer"] { background: #FFFFFF; }
-    [data-testid="stMainBlockContainer"] { padding-top: 1.2rem; max-width: 1000px; }
-
-
-    .top-strip { height: 3px; background: var(--red); margin: -1.2rem -2rem 0 -2rem; }
-    .header-bar {
-        display: flex; align-items: center; gap: 16px;
-        padding: 10px 0 14px 0;
-        border-bottom: 1px solid var(--hairline);
-        margin-bottom: 26px;
+    [data-testid="stChatMessage"]:has([aria-label="Chat message from assistant"]) [data-testid="stChatMessageContent"] { min-width: 0; }
+    [data-testid="stChatMessageContent"] p, [data-testid="stChatMessageContent"] li,
+    [data-testid="stChatMessageContent"] pre, [data-testid="stChatInput"] textarea {
+        font-size: 16px; line-height: 1.6; overflow-wrap: anywhere;
     }
-    .header-logo { flex: 0 0 auto; }
-
-
-    .hero-title {
-        font-family: var(--serif);
-        font-weight: 600;
-        font-size: 2.2rem;
-        color: var(--ink);
-        letter-spacing: .3px;
-        margin: 6px 0 4px 0;
-    }
-    .hero-sub {
-        font-size: 1.05rem;
-        color: var(--gray);
-        margin: 0 0 8px 0;
-        font-style: italic;
-        line-height: 1.5;
-    }
-    .hero-rule {
-        border: none; height: 2px; margin: 10px 0 22px 0;
-        background: linear-gradient(90deg, var(--red) 0%, var(--red) 22%, var(--hairline) 22.5%, var(--hairline) 100%);
-    }
-    .hero-rule::before { content: ""; }
-
-
-    [data-testid="stButton"] button {
-        background: var(--red);
-        color: #FFFFFF;
-        border: none;
-        border-radius: 10px;
-        padding: 0.45rem 1.1rem;
-        font-family: var(--serif);
-        font-weight: 500;
-        white-space: nowrap;
-    }
-    [data-testid="stButton"] button:hover { background: var(--red-deep); color: #fff; }
-
-
-    [data-testid="stChatMessage"] { background: transparent; padding: 6px 0; }
-    [data-testid="stChatMessageContent"] {
-        max-width: 720px;
-        padding: 14px 18px;
-        border-radius: 16px;
-        line-height: 1.8;
-    }
-
-    [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-assistant"]) [data-testid="stChatMessageContent"] {
-        background: var(--paper);
-        color: var(--ink);
-        border: 1px solid var(--hairline);
-        border-left: 3px solid var(--red);
-        border-bottom-left-radius: 4px;
-    }
-
-    [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) [data-testid="stChatMessageContent"] {
-        background: linear-gradient(135deg, var(--red-bright) 0%, var(--red-deep) 100%);
-        color: #FFFFFF;
-        border-bottom-right-radius: 4px;
-        box-shadow: 0 12px 28px rgba(158, 36, 53, .26);
-    }
-
-
-    [data-testid="stExpander"] {
-        background: #FFFFFF;
-        border: 1px solid var(--hairline);
-        border-left: 3px solid var(--red);
-        border-radius: 8px;
-        margin-top: 8px;
-        overflow: hidden;
-    }
-    [data-testid="stExpander"] summary { color: var(--red-deep); font-size: .92em; font-weight: 500; }
-    [data-testid="stExpander"] details { border: none; }
-    [data-testid="stExpander"] p { color: var(--ink); }
-
-
-    [data-testid="stChatInput"] {
-        background: #FFFFFF;
-        border: 1px solid var(--hairline);
-        border-radius: 14px;
-        padding: 6px 10px;
-        box-shadow: 0 6px 20px rgba(43,43,45,.05);
-    }
+    [data-testid="stBottomBlockContainer"] { max-width: 880px; margin-left: auto; margin-right: auto; }
+    [data-testid="stChatInput"] { min-height: 56px; border: 1px solid #E7E0DD; border-radius: 16px; }
     [data-testid="stChatInput"]:focus-within { border-color: var(--red); }
-    [data-testid="stChatInput"] textarea { color: var(--ink); font-family: var(--serif); }
-
-
-    .welcome {
-        background: var(--paper);
-        border: 1px solid var(--hairline);
-        border-top: 3px solid var(--red);
-        border-radius: 12px;
-        padding: 26px 28px;
-        margin: 8px 0 20px 0;
+    [data-testid="stExpander"] { border: 1px solid #E7E0DD; border-radius: 8px; }
+    [data-testid="stExpander"] summary { color: var(--red-deep); }
+    @media (max-width: 767px) {
+        [data-testid="stAppScrollToBottomContainer"] { left: 320px !important; width: calc(100% - 320px) !important; }
     }
-    .welcome h3 { font-family: var(--serif); font-weight: 600; color: var(--ink); margin: 0 0 6px 0; }
-    .welcome p  { color: var(--gray); margin: 0 0 16px 0; }
-    .example-chip {
-        display: inline-block;
-        border: 1px solid var(--red);
-        color: var(--red-deep);
-        border-radius: 999px;
-        padding: 7px 16px;
-        margin: 0 8px 8px 0;
-        cursor: pointer;
-        font-family: var(--serif);
-        transition: all .15s ease;
+    @media (max-width: 640px) {
+        [data-testid="stSidebar"] { position: relative !important; min-width: 155px; max-width: 155px; width: 155px !important; }
+        [data-testid="stSidebarContent"] { padding: 8px; }
+        [data-testid="stAppScrollToBottomContainer"] { left: 155px !important; width: calc(100% - 155px) !important; }
+        [data-testid="stMainBlockContainer"] { padding-left: 16px; padding-right: 16px; }
+        .sidebar-title { font-size: 20px; }
+        .welcome { font-size: 22px; }
+        [data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) [data-testid="stChatMessageContent"] { max-width: 95%; }
     }
-    .example-chip:hover { background: var(--red); color: #fff; }
     </style>
     """,
     unsafe_allow_html=True,
 )
-
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -173,7 +79,6 @@ if "messages" not in st.session_state:
 
 def _new_chat():
     st.session_state.messages = []
-    st.session_state.pop("_pending_question", None)
 
 
 def _safe_error(answer):
@@ -209,12 +114,12 @@ def _display_response(resp):
 
 
 def _render_message(message):
-    with st.chat_message(message["role"]):
+    with st.chat_message(message["role"], avatar=f"{message['role']}_avatar.svg"):
         st.markdown(message["content"])
         for chunk in message.get("chunks", []):
             title = (f"📄 {chunk.get('section', 'Source')} · "
                      f"printed p. {chunk.get('printed_page', '?')} / PDF p. {chunk.get('pdf_page', '?')}")
-            with st.expander(title):
+            with st.expander(title, expanded=False):
                 st.text(chunk.get("text", ""))
 
 
@@ -224,7 +129,8 @@ def render_turn(question):
     st.session_state.messages.append(user)
     _render_message(user)
     try:
-        response = answer_question(question, history)
+        with st.spinner("Thinking..."):
+            response = answer_question(question, history)
         content = _display_response(response)
         chunks = response.get("cited_chunks", []) if response.get("status") == "answered" else []
         if not isinstance(chunks, list):
@@ -237,30 +143,27 @@ def render_turn(question):
     _render_message(message)
 
 
-st.markdown("<div class='top-strip'></div>", unsafe_allow_html=True)
-c_logo, c_new = st.columns([1.2, 0.9], vertical_alignment="center")
-with c_logo:
-    st.image("polyu_logo.png", width=230)
-with c_new:
-    st.button("New Conversation", on_click=_new_chat, use_container_width=True)
+with st.sidebar:
+    logo, name = st.columns([1, 3], vertical_alignment="center")
+    with logo:
+        st.image("polyu_logo.svg", width=55)
+    with name:
+        st.markdown(f"<div class='sidebar-title'>{TITLE}</div>", unsafe_allow_html=True)
+    st.button("New conversation", on_click=_new_chat, use_container_width=True)
+    st.markdown("**About this assistant**")
+    st.markdown("Ask questions about academic regulations using the student handbook.")
+    with st.container(key="sidebar_picture"):
+        st.image("sidebar-picture.jpeg", width="stretch")
+    with st.container(key="handbook_footer"):
+        st.markdown("**Handbook**  \n2026/27 Student Handbook for Taught Programmes")
+        st.markdown("Check the official handbook or contact your department for decisions about your situation.")
 
-st.markdown(f"<div class='hero-title'>{TITLE}</div>", unsafe_allow_html=True)
-st.markdown(f"<div class='hero-sub'>{SUBTITLE}</div>", unsafe_allow_html=True)
-st.markdown("<div class='hero-rule'></div>", unsafe_allow_html=True)
+question = st.chat_input("Ask about PolyU academic regulations...")
+if not st.session_state.messages and not question:
+    st.markdown(f"<div class='welcome'>{MOTTO}</div>", unsafe_allow_html=True)
 
 for message in st.session_state.messages:
     _render_message(message)
 
-pending = st.session_state.pop("_pending_question", None)
-if not st.session_state.messages and not pending:
-    st.markdown(f"<div class='welcome'><h3>Try asking</h3><p>{SUBTITLE}</p></div>", unsafe_allow_html=True)
-    columns = st.columns(3)
-    for index, example in enumerate(EXAMPLES):
-        if columns[index].button(example, use_container_width=True):
-            pending = example
-
-question = st.chat_input("Ask about PolyU academic regulations...")
-if pending:
-    render_turn(pending)
-elif question:
+if question:
     render_turn(question)

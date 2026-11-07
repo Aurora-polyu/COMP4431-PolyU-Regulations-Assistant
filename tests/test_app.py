@@ -56,14 +56,19 @@ def test_answer_followup_history_citations_rerun_and_reset():
         assert not app.exception
 
 
-def test_example_button_submits_once():
+def test_welcome_disappears_on_submit_and_returns_on_reset():
+    motto = "To learn and to apply, for the benefit of mankind."
     with patch("src.conversation.answer_question", return_value=response()) as service:
         app = start()
-        app.button[1].click().run()
-        assert service.call_args.args == ("When is the add/drop period?", [])
-        app.run()
-        assert service.call_count == 1
-        assert len(contents(app)) == 2
+        assert any(motto in item.value for item in app.markdown)
+        assert len(app.button) == 1
+        ask(app, "A question")
+        assert not any(motto in item.value for item in app.markdown)
+        assert service.call_args.args == ("A question", [])
+        assert app.expander[0].proto.expanded is False
+        app.button[0].click().run()
+        assert any(motto in item.value for item in app.markdown)
+        assert not app.exception
 
 
 @pytest.mark.parametrize("status", ["answered", "needs_clarification", "insufficient_evidence", "error"])
@@ -74,7 +79,7 @@ def test_fixture_warning_survives_all_statuses(status):
         ask(app, "Question")
         assert contents(app)[1].count(FIXTURE_WARNING) == 1
         app.run()
-        assert FIXTURE_WARNING in app.markdown[-1].value
+        assert any(FIXTURE_WARNING in item.value for item in app.markdown)
         if status != "answered":
             assert not app.expander
 

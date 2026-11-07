@@ -6,7 +6,7 @@ from src.conversation import FIXTURE_WARNING, NO_EVIDENCE_ANSWER, answer_questio
 
 st.set_page_config(
     page_title="PolyU Academic Regulations Assistant",
-    page_icon="polyu_logo.svg",
+    page_icon="assets/polyu_logo.svg",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -114,7 +114,7 @@ def _display_response(resp):
 
 
 def _render_message(message):
-    with st.chat_message(message["role"], avatar=f"{message['role']}_avatar.svg"):
+    with st.chat_message(message["role"], avatar=f"assets/{message['role']}_avatar.svg"):
         st.markdown(message["content"])
         for chunk in message.get("chunks", []):
             title = (f"📄 {chunk.get('section', 'Source')} · "
@@ -146,14 +146,14 @@ def render_turn(question):
 with st.sidebar:
     logo, name = st.columns([1, 3], vertical_alignment="center")
     with logo:
-        st.image("polyu_logo.svg", width=55)
+        st.image("assets/polyu_logo.svg", width=55)
     with name:
         st.markdown(f"<div class='sidebar-title'>{TITLE}</div>", unsafe_allow_html=True)
     st.button("New conversation", on_click=_new_chat, use_container_width=True)
     st.markdown("**About this assistant**")
     st.markdown("Ask questions about academic regulations using the student handbook.")
     with st.container(key="sidebar_picture"):
-        st.image("sidebar-picture.jpeg", width="stretch")
+        st.image("assets/sidebar-picture.jpeg", width="stretch")
     with st.container(key="handbook_footer"):
         st.markdown("**Handbook**  \n2026/27 Student Handbook for Taught Programmes")
         st.markdown("Check the official handbook or contact your department for decisions about your situation.")

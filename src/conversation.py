@@ -6,7 +6,6 @@ the retrieved set. It never falls back to unsupported content.
 """
 
 import json
-import os
 import re
 
 from src.citations import format_evidence, is_fixture, validate_citations
@@ -98,11 +97,7 @@ def _normalise_history(history: object) -> list[dict]:
 
 
 def _default_retriever():
-    backend = os.environ.get("RETRIEVAL_BACKEND", "real").strip().lower()
-    if backend == "mock":
-        from src.mock_retriever import retrieve
-    else:
-        from src.retriever import retrieve
+    from src.retriever import retrieve
     return retrieve
 
 
@@ -182,7 +177,7 @@ def answer_question(
     """Answer one question from retrieved handbook evidence.
 
     `retrieve` and `llm` are injectable for tests. Without them the service
-    uses Member 2's retriever (see RETRIEVAL_BACKEND) and DeepSeek.
+    uses the handbook retriever and DeepSeek.
     """
     if not isinstance(question, str) or not question.strip():
         raise ValueError("question must be a nonblank string")

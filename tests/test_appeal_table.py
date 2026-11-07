@@ -1,4 +1,4 @@
-"""Regression checks for the review-only appeal table correction."""
+"""Regression checks for the appeal table correction."""
 import re
 import sys
 
@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT / "src"))
-from build_stage_a_appeal_candidate import candidate
+from appeal_table import candidate
 from chunker import chunk_document
 from pdf_processor import extract_handbook
 

@@ -79,7 +79,7 @@ def main():
     parser.add_argument("--model", default=os.environ.get("RETRIEVAL_MODEL", DEFAULT_MODEL))
     args = parser.parse_args()
     if not args.chunks.expanduser().is_file():
-        parser.exit(1, f"Chunk file not found: {args.chunks}. Obtain Member 1's handoff or specify --chunks /path/to/chunks.jsonl.\n")
+        parser.exit(1, f"Chunk file not found: {args.chunks}. Prepare the handbook chunks or specify --chunks /path/to/chunks.jsonl.\n")
     if is_sample_hash(file_hash(args.chunks.expanduser())) and args.index_dir is None:
         parser.error("The fictional sample requires an explicit --index-dir separate from the handbook index")
     args.index_dir = args.index_dir or Path(os.environ.get("RETRIEVAL_INDEX_DIR", str(DEFAULT_INDEX)))

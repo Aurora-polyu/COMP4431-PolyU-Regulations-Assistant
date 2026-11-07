@@ -12,7 +12,7 @@ Optional::
         --out data/chunks.jsonl
 
 The script is deterministic: same PDF + same flags => same output.
-See ``docs/member1_protocol.md`` for the output contract.
+See ``docs/data-and-indexing.md`` for the output contract.
 """
 
 from __future__ import annotations
@@ -30,8 +30,8 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from chunker import Chunk, DEFAULT_MAX_WORDS, DEFAULT_MIN_WORDS, chunk_document, chunk_stats  # noqa: E402
-from build_stage_a_appeal_candidate import PDF_HASH, SOURCE_HASH, candidate  # noqa: E402
-from stage_a_table_annotations import annotate  # noqa: E402
+from appeal_table import PDF_HASH, SOURCE_HASH, candidate  # noqa: E402
+from table_annotations import annotate  # noqa: E402
 from pdf_processor import extract_handbook, find_tables_report  # noqa: E402
 
 

@@ -1,9 +1,9 @@
-"""Tests for the Member 1 handbook pipeline.
+"""Tests for the handbook pipeline.
 
 Run either way:
 
-    pytest tests/test_member1_pipeline.py
-    python tests/test_member1_pipeline.py
+    pytest tests/test_handbook_pipeline.py
+    python tests/test_handbook_pipeline.py
 
 The tests need the handbook PDF.  Resolution order:
 

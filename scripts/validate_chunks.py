@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Validate ``data/chunks.jsonl`` against the Member 1 contract.
+"""Validate ``data/chunks.jsonl`` against the handbook chunk contract.
 
-Checks performed (see ``docs/member1_protocol.md`` §10):
+Checks performed (see ``docs/data-and-indexing.md``):
 
 * exactly the five contract fields, with the right types;
 * unique ``chunk_id`` matching the documented pattern;
@@ -193,7 +193,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  ... and {len(errors) - 40} more")
         return 1
 
-    scope = "satisfies the Member 1 contract" if pdf else "passes schema and chunk-size checks (PDF checks skipped)"
+    scope = "satisfies the handbook chunk contract" if pdf else "passes schema and chunk-size checks (PDF checks skipped)"
     print(f"OK: {args.chunks} {scope}")
     return 0
 

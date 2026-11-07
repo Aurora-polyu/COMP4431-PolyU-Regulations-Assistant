@@ -1,13 +1,11 @@
 """Page-aware text extraction for the PolyU 2026/27 Student Handbook.
 
-Member 1 — Handbook Processing & Data (COMP4431 group project).
-
 This module turns the supplied handbook PDF into an ordered list of
 :class:`PageRecord` objects.  Each body page carries its printed (footer) page
 number, its 1-based PDF page number, and a list of paragraphs annotated with the
 handbook section they belong to.
 
-Design notes live in ``docs/member1_protocol.md``.  Read that first; the code
+Design notes live in ``docs/data-and-indexing.md``.  Read that first; the code
 below implements it literally.
 
 The module is deliberately free of network, clock and randomness so that the

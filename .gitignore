@@ -247,3 +247,6 @@ __marimo__/
 
 # Isolated fictional retrieval smoke-test index
 chroma_db_sample/
+
+# Archived local review records remain private and untracked
+/archive/local_data/

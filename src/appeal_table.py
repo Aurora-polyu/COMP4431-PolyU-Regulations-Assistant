@@ -55,4 +55,3 @@ def candidate(chunks: list[dict]) -> list[dict]:
                 item["chunk_id"] = f"{PREFIX}{number:03d}"
             result.append(item)
     return result
-

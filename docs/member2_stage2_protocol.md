@@ -21,7 +21,7 @@ Member 1 must confirm the contract and eventually provide validated handbook chu
 1. Install the project's pinned retrieval dependencies in a Python 3.12 virtual environment. Start with `BAAI/bge-small-en-v1.5` as the candidate local embedding model; its final selection depends on a later handbook retrieval benchmark.
 2. Run `python scripts/build_index.py` from the project root to build from `data/sample_chunks.json` into the local `chroma_db/` directory. Use `--chunks` and `--index-dir` to select another source and destination. An initial model download may be necessary.
 3. Validate the complete input before indexing: reject missing or additional fields, blank strings, non-positive or non-integer page numbers, duplicate IDs, and an empty corpus. Index the passage as the Chroma document and store section and page fields as metadata; use the chunk ID as the document ID.
-4. Build a fresh index generation from the full input and publish it only after the build succeeds. Record the source path and hash, embedding model, query encoding configuration, and index format. Rebuild when the source or embedding configuration changes; never silently use a stale index.
+4. Build a fresh index generation from the full input and publish it only after the build succeeds. Record the source path and hash, embedding model and immutable Hub revision, query encoding configuration, and index format. Search must load that exact model revision. Rebuild when the source or embedding configuration changes; never silently use a stale index.
 5. Keep local indexes, model caches, and generated handbook data out of Git. Do not add the handbook to the repository without confirming permission to share it.
 
 ## Search workflow and interface
@@ -32,7 +32,7 @@ Member 3 imports `retrieve` from `src.retriever`:
 retrieve(query: str, top_k: int = 5) -> list[RetrievedChunk]
 ```
 
-For a nonblank query, load the selected index and construct the in-memory BM25 index from the same stored documents. Search with the local embedding model and BM25, preserving alphanumeric form identifiers such as `ZX101` during case-insensitive tokenization. Fuse up to `max(20, top_k)` candidates from each branch using reciprocal rank fusion with constant 60; deduplicate by `chunk_id` and break score ties by ID. Return at most `top_k` ranked chunks with the five original fields and complete passage text. Retrieval scores indicate rank, not correctness or evidential support.
+For a nonblank query, load the selected index and construct the in-memory BM25 index from the same stored documents. Search with the local embedding model and BM25+ (which avoids negative IDF for common terms), preserving alphanumeric form identifiers such as `ZX101` during case-insensitive tokenization. Fuse up to `max(20, top_k)` candidates from each branch using reciprocal rank fusion with constant 60; deduplicate by `chunk_id` and break score ties by ID. Return at most `top_k` ranked chunks with the five original fields and complete passage text. Retrieval scores indicate rank, not correctness or evidential support.
 
 A blank query returns `[]`, a non-positive `top_k` raises `ValueError`, and results are capped at the corpus size. Missing, stale, unreadable, or incompatible indexes and unavailable local models produce an actionable retrieval error; they must not trigger a fallback to fictional evidence. Set `RETRIEVAL_INDEX_DIR` for a nondefault index and `RETRIEVAL_MODEL` when a nondefault embedding model was used. Consult the README for setup and rebuild commands.
 

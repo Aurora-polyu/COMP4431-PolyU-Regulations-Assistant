@@ -29,7 +29,9 @@ SRC_DIR = REPO_ROOT / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from chunker import DEFAULT_MAX_WORDS, DEFAULT_MIN_WORDS, chunk_document, chunk_stats  # noqa: E402
+from chunker import Chunk, DEFAULT_MAX_WORDS, DEFAULT_MIN_WORDS, chunk_document, chunk_stats  # noqa: E402
+from build_stage_a_appeal_candidate import PDF_HASH, SOURCE_HASH, candidate  # noqa: E402
+from stage_a_table_annotations import annotate  # noqa: E402
 from pdf_processor import extract_handbook, find_tables_report  # noqa: E402
 
 
@@ -108,8 +110,16 @@ def main(argv: list[str] | None = None) -> int:
 
     document = extract_handbook(args.pdf)
     chunks = chunk_document(document, max_words=args.max_words, min_words=args.min_words)
+    pdf_hash = _sha256(args.pdf)
+    if pdf_hash == PDF_HASH:
+        # Apply the reviewed layout annotations only to the exact raw extraction.
+        # Fail rather than silently dropping the fix when chunking flags change.
+        raw = "".join(json.dumps(c.as_dict(), ensure_ascii=False) + "\n" for c in chunks)
+        if hashlib.sha256(raw.encode("utf-8")).hexdigest() != SOURCE_HASH:
+            parser.error("reviewed handbook extraction differs from the baseline; review the appeal table before rebuilding")
+        chunks = [Chunk(**c) for c in annotate(candidate([c.as_dict() for c in chunks]))]
     stats = chunk_stats(document, chunks, args.max_words, args.min_words)
-    stats["source_sha256"] = _sha256(args.pdf)
+    stats["source_sha256"] = pdf_hash
     stats["source_file"] = args.pdf.name
 
     args.out.parent.mkdir(parents=True, exist_ok=True)

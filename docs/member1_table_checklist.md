@@ -4,6 +4,8 @@ The plan requires manual verification of tables and numerical rules; the text
 pipeline deliberately does **not** reshape table cells (see protocol §8). This is the
 working list. Mark each row when it has been compared against the PDF by eye.
 
+**Stage A review:** See [stage_a_review.md](stage_a_review.md) for the 2026-11-07 findings, corrections, accepted coverage limitation, and gate decision. A checked row means the page was visually compared; it does not by itself prove that flattened table relationships are safe or that every table has been found. See the review for defects and restrictions. Six additional pages missed by the detector were visually reviewed by the independent AI reviewer; their results are in [the independent review](stage_a_independent_table_review.md).
+
 **How to check a page**
 
 1. Open the PDF at the PDF page number, and compare with the chunk text for that
@@ -21,46 +23,52 @@ fines), 96–100 (opening hours), 108–111 (bad-weather arrangements).
 
 | PDF | Printed | Detected tables (rows × cols) | Section | Checked |
 |---:|---:|---|---|---|
-| 24 | 13 | 2×2 | 4.C Use, Access and Change of Student Data | [ ] |
-| 25 | 14 | 4×3, 2×2 | 4.D Normal Duration for Completion of a Programme | [ ] |
-| 26 | 15 | 2×2 | 4.F Leave of Absence | [ ] |
-| 29 | 18 | 4×4 | 4.I Zero Subject Enrolment and Retention of Study Place* | [ ] |
-| 31 | 20 | 4×2 | 4.K Student Status | [ ] |
-| 32 | 21 | 4×2 | 4.K Student Status | [ ] |
-| 33 | 22 | 4×3 | 4.L Withdrawal of Study* | [ ] |
-| 34 | 23 | 4×2 | 4.L Withdrawal of Study* | [ ] |
-| 35 | 24 | 2×3 | 4.M Undergraduate Degree Programmes with Minor/Double Major/Secondary Major/Fast-track Programmes Study Options | [ ] |
-| 36 | 25 | 2×3, 2×3 | 4.M Undergraduate Degree Programmes with Minor/Double Major/Secondary Major/Fast-track Programmes Study Options | [ ] |
-| 38 | 27 | 2×3 | 4.M Undergraduate Degree Programmes with Minor/Double Major/Secondary Major/Fast-track Programmes Study Options | [ ] |
-| 42 | 30 | 4×2, 4×6 | 5.B Subject Exemption and Credit Transfer | [ ] |
-| 44 | 32 | 4×6, 2×3 | 5.B Subject Exemption and Credit Transfer | [ ] |
-| 45 | 33 | 4×6 | 5.B Subject Exemption and Credit Transfer | [ ] |
-| 48 | 36 | 4×2 | 5.H Nullification of Registration* | [ ] |
-| 51 | 38 | 4×6 | 6.B Progression and De-registration* | [ ] |
-| 56 | 43 | 2×4 | 6.H Late Assessment | [ ] |
-| 57 | 44 | 1×4 | 6.I Academic Appeals | [ ] |
-| 61 | 48 | 4×2 | 6.K Application for Graduation | [ ] |
-| 65 | 51 | 2×6 | 7.C Award Parchment | [ ] |
-| 66 | 52 | 2×2, 2×6 | 7.D Certification of Award & Replacement Award Parchment | [ ] |
-| 70 | 55 | 2×9 | 8.C Payment Methods | [ ] |
-| 71 | 56 | 4×9 | 8.C Payment Methods | [ ] |
-| 75 | 60 | 2×3, 2×3 | 8.H Tuition Fees | [ ] |
-| 76 | 61 | 5×6, 7×6, 2×6 | 8.H Tuition Fees | [ ] |
-| 77 | 62 | 7×6 | 8.I Other Fees/Charges | [ ] |
-| 89 | 71 | 4×2 | 11.C Use of University’s Name, Property and Premises | [ ] |
-| 106 | 87 | 6×2 | 12.B Pao Yue-kong Library | [ ] |
-| 109 | 90 | 7×2 | 12.C Student Affairs Office | [ ] |
-| 115 | 96 | 12×4 | 12.C Student Affairs Office | [ ] |
-| 116 | 97 | 9×3, 11×9 | 12.C Student Affairs Office | [ ] |
-| 117 | 98 | 5×9, 10×7 | 12.C Student Affairs Office | [ ] |
-| 118 | 99 | 3×3 | 12.C Student Affairs Office | [ ] |
-| 119 | 100 | 8×3, 4×2 | 12.C Student Affairs Office | [ ] |
-| 122 | 103 | 5×3, 6×3 | 12.F Other Communal Facilities | [ ] |
-| 123 | 104 | 14×3 | 12.F Other Communal Facilities | [ ] |
-| 128 | 108 | 27×4 | Appendix 1. Arrangements during Bad Weather | [ ] |
-| 129 | 109 | 8×2 | Appendix 1.A Tropical Cyclone Warning and ‘Extreme Conditions’ | [ ] |
-| 130 | 110 | 20×4 | Appendix 1.A Tropical Cyclone Warning and ‘Extreme Conditions’ | [ ] |
-| 131 | 111 | 8×2 | Appendix 1.B Rainstorm Warning | [ ] |
+| 20 | 9 | Missed: AR2 application box | 4.B Student Identity Card | [x] |
+| 24 | 13 | 2×2 | 4.C Use, Access and Change of Student Data | [x] |
+| 25 | 14 | 4×3, 2×2 | 4.D Normal Duration for Completion of a Programme | [x] |
+| 26 | 15 | 2×2 | 4.F Leave of Absence | [x] |
+| 27 | 16 | Missed: AR7 application/deadline box | 4.H Deferment of Study | [x] |
+| 28 | 17 | Missed: AR112 application box | 4.I Zero Subject Enrolment and Retention of Study Place | [x] |
+| 29 | 18 | 4×4 | 4.I Zero Subject Enrolment and Retention of Study Place* | [x] |
+| 31 | 20 | 4×2 | 4.K Student Status | [x] |
+| 32 | 21 | 4×2 | 4.K Student Status | [x] |
+| 33 | 22 | 4×3 | 4.L Withdrawal of Study* | [x] |
+| 34 | 23 | 4×2 | 4.L Withdrawal of Study* | [x] |
+| 35 | 24 | 2×3 | 4.M Undergraduate Degree Programmes with Minor/Double Major/Secondary Major/Fast-track Programmes Study Options | [x] |
+| 36 | 25 | 2×3, 2×3 | 4.M Undergraduate Degree Programmes with Minor/Double Major/Secondary Major/Fast-track Programmes Study Options | [x] |
+| 38 | 27 | 2×3 | 4.M Undergraduate Degree Programmes with Minor/Double Major/Secondary Major/Fast-track Programmes Study Options | [x] |
+| 42 | 30 | 4×2, 4×6 | 5.B Subject Exemption and Credit Transfer | [x] |
+| 44 | 32 | 4×6, 2×3 | 5.B Subject Exemption and Credit Transfer | [x] |
+| 45 | 33 | 4×6 | 5.B Subject Exemption and Credit Transfer | [x] |
+| 48 | 36 | 4×2 | 5.H Nullification of Registration* | [x] |
+| 51 | 38 | 4×6 | 6.B Progression and De-registration* | [x] |
+| 56 | 43 | 2×4 | 6.H Late Assessment | [x] |
+| 57 | 44 | 1×4 | 6.I Academic Appeals | [x] |
+| 61 | 48 | 4×2 | 6.K Application for Graduation | [x] |
+| 63 | 49 | Missed: AR3 and AR4 form boxes | 7.A Transcript of Studies / 7.B Testimonial | [x] |
+| 65 | 51 | 2×6 | 7.C Award Parchment | [x] |
+| 66 | 52 | 2×2, 2×6 | 7.D Certification of Award & Replacement Award Parchment | [x] |
+| 70 | 55 | 2×9 | 8.C Payment Methods | [x] |
+| 71 | 56 | 4×9 | 8.C Payment Methods | [x] |
+| 75 | 60 | 2×3, 2×3 | 8.H Tuition Fees | [x] |
+| 76 | 61 | 5×6, 7×6, 2×6 | 8.H Tuition Fees | [x] |
+| 77 | 62 | 7×6 | 8.I Other Fees/Charges | [x] |
+| 89 | 71 | 4×2 | 11.C Use of University’s Name, Property and Premises | [x] |
+| 106 | 87 | 6×2 | 12.B Pao Yue-kong Library | [x] |
+| 109 | 90 | 7×2 | 12.C Student Affairs Office | [x] |
+| 115 | 96 | 12×4 | 12.C Student Affairs Office | [x] |
+| 116 | 97 | 9×3, 11×9 | 12.C Student Affairs Office | [x] |
+| 117 | 98 | 5×9, 10×7 | 12.C Student Affairs Office | [x] |
+| 118 | 99 | 3×3 | 12.C Student Affairs Office | [x] |
+| 119 | 100 | 8×3, 4×2 | 12.C Student Affairs Office | [x] |
+| 120 | 101 | Missed: clinic contact/consultation table | 12.D University Health Service | [x] |
+| 122 | 103 | 5×3, 6×3 | 12.F Other Communal Facilities | [x] |
+| 123 | 104 | 14×3 | 12.F Other Communal Facilities | [x] |
+| 128 | 108 | 27×4 | Appendix 1. Arrangements during Bad Weather | [x] |
+| 129 | 109 | 8×2 | Appendix 1.A Tropical Cyclone Warning and ‘Extreme Conditions’ | [x] |
+| 130 | 110 | 20×4 | Appendix 1.A Tropical Cyclone Warning and ‘Extreme Conditions’ | [x] |
+| 131 | 111 | 8×2 | Appendix 1.B Rainstorm Warning | [x] |
+| 137 | 117 | Missed: emergency phone table | Appendix 3.H Emergency Contact and Other Useful Telephone Numbers | [x] |
 
 ## Non-table numeric rules to verify
 

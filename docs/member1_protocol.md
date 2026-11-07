@@ -155,7 +155,7 @@ Admitted in or before 2019/20)`.
 Deeper headings (`i.`, `ii.`, roman-numeral items inside a subsection) are **not**
 promoted to the `section` field. They remain inside the chunk text, which keeps the
 `section` field at the granularity used by the plan and by Member 2's ranking
-metadata.
+metadata. The reviewed appeal-ground table on PDF pages 56–57 is an exception: its chunks use derived column descriptions in their section labels, so that the continuation cells retain their source-verified meaning. These descriptions are annotations, not verbatim headings on page 57. Selected fee, contact, and facility tables also have explicitly marked source-layout annotations in their section labels; the passage text remains verbatim.
 
 ### 4.3 Continuity
 
@@ -163,7 +163,7 @@ A page can contain the start of a new section after the tail of the previous one
 Paragraphs are labelled with the section that is in force at their position, so the
 tail of page N keeps its old label and the rest of page N takes the new one. A
 section may therefore continue across pages; its chunks keep the same `section`
-value on every page.
+value on every page, except for the reviewed appeal table annotations described above.
 
 ---
 
@@ -172,7 +172,7 @@ value on every page.
 | Field | Type | Required | Semantics | Guarantees |
 |---|---|---|---|---|
 | `chunk_id` | string | yes | Stable identifier | Unique across the whole file; matches `^(sec\d+(_[A-Z])?|app\d+(_[A-Z])?)_\d{3}$` |
-| `section` | string | yes | Section label as in §4.2 | Non-empty; same label for every chunk of one section |
+| `section` | string | yes | Section label as in §4.2 | Non-empty; generally the same label for every chunk of one section, except reviewed table-layout annotations |
 | `printed_page` | integer | yes | Handbook footer page, 1-based | `1 <= printed_page <= 117` |
 | `pdf_page` | integer | yes | PDF page, 1-based | `1 <= pdf_page <= 137`; maps to `printed_page` per §3 |
 | `text` | string | yes | Complete passage text | Non-empty; contains the full text of the paragraphs in the chunk; never truncated mid-sentence |
@@ -261,6 +261,8 @@ The handbook contains 44 pages with detected tables (fee schedules, library
 penalties, opening hours, bad-weather arrangements). PyMuPDF extracts table cells
 in reading order but **does not preserve column structure** for tables with merged
 cells.
+
+For the source PDF with SHA-256 `4fb771304c1d1ae17f2e2d1187b8878d2e0942966959eda1b3bfbbc48cf9a464`, the builder splits the appeal table cells and adds source-derived column descriptions to their section labels. It requires the exact reviewed raw extraction and fails if a parameter or text change alters that extraction. The builder also attaches source-verified layout annotations to the specific fee and facility tables recorded in `docs/stage_a_review.md`. The annotation is not a verbatim quotation; review other tables separately.
 
 Policy:
 

@@ -51,7 +51,7 @@ Conversation history -----------------------------------------> DeepSeek V4 Pro
 | Vector store | ChromaDB | Store chunk text as documents; metadata separately |
 | Keyword retrieval | BM25 | English tokenization; preserve form IDs such as AR160 |
 | Fusion | Reciprocal Rank Fusion (RRF) | Merge vector and BM25 rankings; deduplicate by `chunk_id` |
-| Answer generation | DeepSeek V4 Pro API | Confirm available API model identifier and endpoint in the team's account; configure with environment variables |
+| Answer generation | DeepSeek V4.1 Flash API (`deepseek-flash`) | The team's account exposes `deepseek-flash` and `deepseek-v4-pro`; the team chose the Flash model for speed and cost. Configure with environment variables |
 | Secrets | `.env` per developer | Never commit keys or rotate keys in code; shared account, distinct individual keys if available |
 | Factual data | The supplied handbook only | No network or general LLM knowledge as a factual authority |
 
@@ -130,7 +130,7 @@ Prepare **30 manually checked questions** based only on the handbook:
 | Conditional student scenarios | 8 |
 | Multi-section questions | 5 |
 | Conversational follow-ups | 4 |
-| Unsupported or ambiguous questions | 5 |
+| Clearly worded unsupported questions | 5 |
 | **Total** | **30** |
 
 Track: Retrieval Recall@5, answer correctness, citation claim support, unsupported-answer handling, and end-to-end latency. Proposed targets (not claimed results): ≥90% Recall@5; ≥90% answer correctness; aim for 100% grounded citations and appropriate abstention. Inspect errors manually before drawing conclusions.
@@ -192,7 +192,7 @@ COMP4431-PolyU-Assistant/
 
 ## 8. Pending technical checks (not scope changes)
 
-- Confirm the DeepSeek account can access the intended V4 Pro model and record the **exact API model ID**.
+- Confirmed: the DeepSeek account exposes `deepseek-flash` and `deepseek-v4-pro`; the team chose `deepseek-flash` (V4.1 Flash) as the answer model.
 - Pick the final local English embedding model after a small retrieval smoke test.
 - Verify table extraction, pagination, source version, and exact numeric rules against the PDF.
 - Confirm GitHub repository access and handbook distribution permissions.

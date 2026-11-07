@@ -17,6 +17,7 @@ chroma_db/
 chroma/
 data/*
 !data/.gitkeep
+!data/sample_chunks.json
 
 # Handbook: sharing permission has not yet been confirmed
 Student_Handbook_2026-27_English.pdf
@@ -243,3 +244,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Isolated fictional retrieval smoke-test index
+chroma_db_sample/

@@ -1,0 +1,41 @@
+{
+  "source_title": "Student Handbook for Taught Programmes 2026/27",
+  "pdf_pages_total": 137,
+  "body_pages": 117,
+  "printed_page_min": 1,
+  "printed_page_max": 117,
+  "front_matter_pages": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "divider_pages": [
+    8,
+    10,
+    14,
+    18,
+    39,
+    49,
+    62,
+    67,
+    78,
+    82,
+    84,
+    97,
+    127
+  ],
+  "max_words": 450,
+  "min_words": 100,
+  "chunks": 186,
+  "sections": 102,
+  "words_total": 36117,
+  "words_min": 10,
+  "words_max": 446,
+  "words_mean": 194.2,
+  "source_sha256": "4fb771304c1d1ae17f2e2d1187b8878d2e0942966959eda1b3bfbbc48cf9a464",
+  "source_file": "handbook.pdf"
+}

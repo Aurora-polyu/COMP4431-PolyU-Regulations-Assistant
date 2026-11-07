@@ -243,10 +243,3 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
-
-# Member 1 published data; keep the source PDF local
-!data/chunks.jsonl
-!data/chunks_stats.json
-!data/page_map.csv
-!data/table_pages.csv
-data/handbook.pdf

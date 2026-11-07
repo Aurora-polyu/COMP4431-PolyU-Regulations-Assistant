@@ -1,0 +1,25 @@
+# Local secrets and environments
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+
+# Python and local caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.cache/
+
+# Local indexes and generated data
+chroma_db/
+chroma/
+data/*
+!data/.gitkeep
+
+# Handbook: sharing permission has not yet been confirmed
+Student_Handbook_2026-27_English.pdf
+
+# System files
+.DS_Store

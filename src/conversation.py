@@ -19,7 +19,7 @@ FIXTURE_WARNING = (
     "[Development data: these passages are fictional. This is not a PolyU regulation.]"
 )
 NO_EVIDENCE_ANSWER = (
-    "The provided 2026/27 Student Handbook does not appear to cover this question. "
+    "I could not find enough evidence in the retrieved handbook passages to answer this question. "
     "Please check with the Academic Registry or your programme office."
 )
 
@@ -31,7 +31,8 @@ Rules:
 - Copy numbers, thresholds, dates and codes exactly as written.
 - Do not decide whether a particular student is eligible. State the rule and its conditions, and point to the responsible office where the handbook does.
 - If the evidence is incomplete, or two passages conflict, say so instead of resolving the conflict.
-- If no passage answers the question, say the provided handbook does not cover it.
+- If no passage answers the question, report that the retrieved evidence is insufficient.
+- If the student's intended action is ambiguous and a short question would distinguish it, ask for clarification even when the retrieved passages are incomplete. For a study break, ask whether the student means missing classes temporarily, pausing their programme, or leaving permanently. Use those descriptions without examples or form names: withdrawing from a subject is not the same as missing classes. Do not assume withdrawal is intended or replace these possibilities with unrelated options.
 - Answer in plain English, at most about 150 words unless the question needs more.
 
 EVIDENCE
@@ -55,8 +56,8 @@ JSON_RETRY_PROMPT = "Return only a valid JSON object matching the requested sche
 
 
 def _mark_fixture(answer: str, source: str) -> str:
-    if source == "fixture" and answer:
-        return f"{FIXTURE_WARNING}\n\n{answer}"
+    if source == "fixture":
+        return f"{FIXTURE_WARNING}\n\n{answer}" if answer else FIXTURE_WARNING
     return answer
 
 
@@ -215,19 +216,21 @@ def answer_question(
     if not chunks:
         return _response(status="insufficient_evidence", answer=NO_EVIDENCE_ANSWER)
 
+    source = "fixture" if is_fixture(chunks) else "handbook"
     messages = _build_messages(question, history, chunks)
     try:
         parsed = _complete_json(llm, messages)
     except LlmError as exc:
-        return _response(status="error", answer=str(exc))
+        return _response(status="error", answer=_mark_fixture(str(exc), source), evidence_source=source)
 
     if parsed is None:
         return _response(
             status="error",
-            answer=(
+            answer=_mark_fixture((
                 "The language model did not return a usable answer. "
                 "Please try again; if this continues, check the API configuration."
-            ),
+            ), source),
+            evidence_source=source,
         )
 
     answer = parsed.get("answer") if isinstance(parsed.get("answer"), str) else ""
@@ -238,31 +241,38 @@ def answer_question(
     else:
         clarification = clarification.strip()
 
-    citation_ids, cited_chunks = validate_citations(parsed.get("citation_ids"), chunks)
-    source = "fixture" if is_fixture(chunks) else "handbook"
-
-    # The model may cite passages it consulted while concluding that they do
-    # not answer the question; those must not be shown as supporting sources.
-    if parsed.get("status") == "insufficient_evidence":
+    model_status = parsed.get("status")
+    if model_status not in ("answered", "needs_clarification", "insufficient_evidence") or (
+        model_status == "needs_clarification" and clarification is None
+    ):
         return _response(
-            status="insufficient_evidence",
-            answer=_mark_fixture(answer or NO_EVIDENCE_ANSWER, source),
+            status="error",
+            answer=_mark_fixture("The language model returned an invalid response. Please try again.", source),
             evidence_source=source,
         )
 
-    if clarification:
-        # An answer shown next to a clarifying question must still be grounded.
+    citation_ids, cited_chunks = validate_citations(parsed.get("citation_ids"), chunks)
+
+    # The model may cite passages it consulted while concluding that they do
+    # not answer the question; those must not be shown as supporting sources.
+    if model_status == "insufficient_evidence":
+        return _response(
+            status="insufficient_evidence",
+            answer=_mark_fixture(NO_EVIDENCE_ANSWER, source),
+            evidence_source=source,
+        )
+
+    if model_status == "needs_clarification":
+        # Ask the question without prematurely presenting rules for an assumed intent.
         return _response(
             status="needs_clarification",
-            answer=_mark_fixture(answer if citation_ids else "", source),
-            citation_chunk_ids=citation_ids,
-            cited_chunks=cited_chunks,
+            answer=_mark_fixture("", source),
             clarification_question=clarification,
             evidence_source=source,
         )
 
     if not answer or not citation_ids:
-        return _response(status="insufficient_evidence", answer=NO_EVIDENCE_ANSWER, evidence_source=source)
+        return _response(status="insufficient_evidence", answer=_mark_fixture(NO_EVIDENCE_ANSWER, source), evidence_source=source)
 
     return _response(
         status="answered",

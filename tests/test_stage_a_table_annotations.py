@@ -50,7 +50,7 @@ def test_emergency_question_receives_both_source_checked_numbers():
             evidence = "\n".join(m["content"] for m in messages)
             assert "24-Hour Campus Emergency Hotline: 2766 7999" in evidence
             assert "Campus Control Centre: 2766 7666" in evidence
-            return json.dumps({"answer": "The two numbers differ.", "citation_ids": ["app3_H_001"], "clarification_question": None})
+            return json.dumps({"status": "answered", "answer": "The two numbers differ.", "citation_ids": ["app3_H_001"], "clarification_question": None})
 
     result = answer_question(
         "What are the campus emergency and control centre numbers?",

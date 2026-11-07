@@ -1,6 +1,7 @@
 # Integration protocol — PolyU regulations assistant
 
-**Status:** Stage A and the Stage B integration gate have passed with recorded limitations; retrieval benchmarking and Stages C–E remain pending.
+**Status:** Stages A–C have passed their integration gates with recorded limitations; retrieval benchmarking and Stages D–E remain pending.
+
 **Working branch:** `codex/integration`, in the `GP-integration` worktree.
 **Baseline:** merge commit `6d3ec6a`, incorporating the four member branches and retrieval commit `ae5892f`. This branch was local at the time of writing. Keep `main` stable and record subsequent integration commits and reviews.
 
@@ -22,6 +23,8 @@ The integration worktree tracks Member 1's `data/chunks.jsonl`, `data/chunks_sta
 On 2026-11-07, running `../GP/.venv/bin/python -m pytest -q -rs` from the integration worktree produced **55 passed, 4 skipped, 8 subtests passed**, with five dependency deprecation warnings. The four PDF-dependent checks were skipped because `data/handbook.pdf` was absent at the time. After the PDF and dedicated environment were added, the Stage A Member 1 test command below was rerun with the PDF and produced **20 passed**, with five SWIG deprecation warnings. These component-test results are not evidence that the integrated application works or that Stage A's manual review is complete.
 
 **Current approved data and Stage B (2026-11-07):** Stage A passed with an accepted table-coverage limitation. The approved PDF SHA-256 remains `4fb771304c1d1ae17f2e2d1187b8878d2e0942966959eda1b3bfbbc48cf9a464`; the approved 186-chunk file now has SHA-256 `4c9ba414555b6fd35a184088f8768cdd2d98fb296fbe7f4522f37704e4683bc3`, superseding the historical baseline hash above. A fresh handbook index was built and the Stage B integration gate passed with a documented paraphrase miss; the benchmark and quality assessment remain pending. See [Stage A review](stage_a_review.md) and [Stage B review](stage_b_review.md) for provenance, results, and limitations.
+
+**Stage C (2026-11-07):** The answer-service gate passed the recorded live and deterministic checks, with retrieval and table-coverage limitations carried forward. The Streamlit UI still uses the mock backend and is not the integrated handbook application. See the [Stage C review](stage_c_review.md) for results and the required Stage D fixture-warning checks.
 
 On 2026-11-07, a dedicated Python 3.12.13 environment was created at `GP-integration/.venv`, separate from `../GP/.venv`. The pinned requirements, including Streamlit 1.67.0, PyMuPDF 2.1 and pytest 9.2.0, were installed there, and `pip check` found no broken requirements. Activate it from the integration root with `source .venv/bin/activate`. During integration, test the runtime and test dependencies together and document a clean setup; a successful `pip check` alone does not establish reproducibility or integrated application behavior.
 
@@ -111,4 +114,5 @@ On 2026-11-07, a dedicated Python 3.12.13 environment was created at `GP-integra
 - [Member 1 preprocessing protocol](member1_protocol.md), [review](member1_self_review.md) and [table checklist](member1_table_checklist.md)
 - [Member 2 retrieval protocol](member2_stage2_protocol.md), [evaluation protocol](member2_stage3_protocol.md) and [findings](member2_stage3_findings.md)
 - [Stage A review](stage_a_review.md) and [Stage B review](stage_b_review.md)
+- [Stage C review](stage_c_review.md)
 - [Member 3 answer-service contract](member3_stage1_protocol.md)

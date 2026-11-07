@@ -36,6 +36,7 @@ def model_answer(ids=("sec5_C_001",), answer="You may retake the subject.", clar
     return json.dumps(
         {
             "answer": answer,
+            "status": "needs_clarification" if clarification else "answered",
             "citation_ids": list(ids),
             "clarification_question": clarification,
         }
@@ -106,7 +107,13 @@ class AnswerServiceTests(unittest.TestCase):
         self.assertEqual(result["status"], "insufficient_evidence")
         self.assertEqual(result["citation_chunk_ids"], [])
         self.assertEqual(result["cited_chunks"], [])
-        self.assertIn("does not cover", result["answer"])
+        self.assertEqual(result["answer"], NO_EVIDENCE_ANSWER)
+
+    def test_insufficient_evidence_does_not_leak_model_claims(self):
+        reply = json.dumps({"status": "insufficient_evidence", "answer": "Uncited fee: $500."})
+        result = answer_question("What is the fee?", retrieve=fake_retriever(CHUNKS), llm=FakeLlm(reply))
+        self.assertEqual(result["answer"], NO_EVIDENCE_ANSWER)
+        self.assertEqual(result["citation_chunk_ids"], [])
 
     def test_empty_retrieval_skips_model(self):
         llm = FakeLlm()
@@ -161,6 +168,21 @@ class AnswerServiceTests(unittest.TestCase):
         self.assertEqual(result["evidence_source"], "fixture")
         self.assertIn("Development data", result["answer"])
 
+    def test_fixture_warning_on_every_post_retrieval_status(self):
+        scenarios = [
+            ("needs_clarification", FakeLlm(model_answer(ids=[], answer="", clarification="Which case?"))),
+            ("insufficient_evidence", FakeLlm(model_answer(ids=["unknown"]))),
+            ("insufficient_evidence", FakeLlm(json.dumps({"status": "insufficient_evidence"}))),
+            ("error", FakeLlm(LlmError("API failure"))),
+            ("error", FakeLlm("invalid", "still invalid")),
+        ]
+        for expected_status, llm in scenarios:
+            with self.subTest(status=expected_status, llm=llm):
+                result = answer_question("Question?", retrieve=fake_retriever([*CHUNKS, *FIXTURE]), llm=llm)
+                self.assertEqual(result["status"], expected_status)
+                self.assertEqual(result["evidence_source"], "fixture")
+                self.assertIn("Development data", result["answer"])
+
     def test_retrieval_value_error_returns_error_status(self):
         result = answer_question(
             "Can I retake a failed subject?",
@@ -181,6 +203,12 @@ class AnswerServiceTests(unittest.TestCase):
         result = answer_question("Can I retake a failed subject?", retrieve=fake_retriever(CHUNKS), llm=llm)
         self.assertEqual(result["status"], "error")
         self.assertNotIn("does not appear to cover", result["answer"])
+
+    def test_invalid_model_status_is_an_error(self):
+        for reply in ('{}', '{"status": "needs_clarification"}', '{"status": []}'):
+            with self.subTest(reply=reply):
+                result = answer_question("Question?", retrieve=fake_retriever(CHUNKS), llm=FakeLlm(reply))
+                self.assertEqual(result["status"], "error")
 
     def test_model_error_returns_error_status(self):
         llm = FakeLlm(LlmError("DeepSeek returned HTTP 401"))

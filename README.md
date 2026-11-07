@@ -1,6 +1,6 @@
 # PolyU Academic Regulations Assistant
 
-A COMP4431 project that answers questions about PolyU's academic regulations using the [2026/27 Student Handbook for Taught Programmes](https://www.polyu.edu.hk/ar/docdrive/polyu-students/student-handbook/Student_Handbook_2026-27_English.pdf). Answers include source passages and page numbers for reference.
+A COMP4431 retrieval-augmented generation (RAG) project that answers questions about PolyU's academic regulations using the [2026/27 Student Handbook for Taught Programmes](https://www.polyu.edu.hk/ar/docdrive/polyu-students/student-handbook/Student_Handbook_2026-27_English.pdf). It retrieves relevant handbook passages to help generate answers, with source passages and page numbers for reference.
 
 **This is an unofficial student project.** Answers may contain errors or omit important conditions, even when they include citations. Check the official handbook and consult the responsible PolyU office before making decisions.
 

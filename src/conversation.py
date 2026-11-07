@@ -38,9 +38,14 @@ EVIDENCE
 {evidence}
 
 Reply with a JSON object only:
-{{"answer": "your answer", "citation_ids": ["<chunk_id>", "..."], "clarification_question": null}}
+{{"answer": "your answer", "status": "answered", "citation_ids": ["<chunk_id>", "..."], "clarification_question": null}}
 
-Citation IDs must be taken from the labels in square brackets above. Every factual sentence must be supported by at least one cited passage."""
+Set "status" to:
+- "answered" when the evidence supports a complete answer;
+- "insufficient_evidence" when the evidence does not answer the question;
+- "needs_clarification" only when one short question would change the answer.
+
+Citation IDs must be taken from the labels in square brackets above. Every factual sentence must be supported by at least one cited passage. Do not cite a passage for a claim it does not support."""
 
 REWRITE_PROMPT = """Rewrite the student's latest message as a standalone search query for a handbook search.
 Resolve pronouns and references using the conversation. Keep names, codes and numbers.
@@ -235,6 +240,15 @@ def answer_question(
 
     citation_ids, cited_chunks = validate_citations(parsed.get("citation_ids"), chunks)
     source = "fixture" if is_fixture(chunks) else "handbook"
+
+    # The model may cite passages it consulted while concluding that they do
+    # not answer the question; those must not be shown as supporting sources.
+    if parsed.get("status") == "insufficient_evidence":
+        return _response(
+            status="insufficient_evidence",
+            answer=_mark_fixture(answer or NO_EVIDENCE_ANSWER, source),
+            evidence_source=source,
+        )
 
     if clarification:
         # An answer shown next to a clarifying question must still be grounded.

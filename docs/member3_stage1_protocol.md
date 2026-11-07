@@ -112,6 +112,7 @@ Membership is necessary but not sufficient: a valid `chunk_id` does not prove th
 - Do not decide individual eligibility. State the rule and its conditions, and point to the responsible office where the handbook does.
 - If passages conflict or are incomplete, say so instead of resolving the conflict.
 - If the evidence is absent, say it is not covered by the provided handbook and suggest the Academic Registry or programme office.
+- The model returns an explicit `status` field. A model-declared `insufficient_evidence` is returned to the caller as `insufficient_evidence` with no citations, even if the model listed passages it consulted.
 - Follow-up questions are rewritten into a standalone retrieval query using the recent turns before retrieval.
 
 ## Failure handling
@@ -127,23 +128,30 @@ Membership is necessary but not sufficient: a valid `chunk_id` does not prove th
 ## Environment
 
 - `DEEPSEEK_API_KEY` in a local `.env`, which is already ignored by `.gitignore`. No key is committed, quoted in chat, or written into code.
-- The model identifier is confirmed: `deepseek-v4-pro`. The account also exposes `deepseek-flash`, but a quick request with the same shape returned empty content, so it is not used.
-- `deepseek-v4-pro` is a reasoning model: its reasoning tokens count against `max_tokens`, and a budget that covers only the visible answer returns empty content. The client default is 1500 tokens and the follow-up rewrite uses 400.
+- The answer model is `deepseek-flash` (V4.1 Flash). The same account also exposes `deepseek-v4-pro`; the team chose Flash for speed and cost.
+- Both models are reasoning models: reasoning tokens count against `max_tokens`, and a budget that covers only the visible answer returns empty content. The client default is 1500 tokens and the follow-up rewrite uses 400. Empty content and invalid JSON retry once.
 - A `.env.example` with placeholder values is committed so that setup is reproducible.
 
 ## Live test record (2026-11-07)
 
-First real calls to DeepSeek through `answer_question()`, using hand-supplied fictional chunks in place of the retriever (the retrieval branch is not merged into `feature/llm` yet).
+Real calls through `answer_question()`, with chunks supplied by hand because the retrieval branch is not merged into `feature/llm` yet. Model: `deepseek-flash`.
+
+The fictional fixture alone was not informative: its passages state that they are not regulations, so the model correctly refused them and returned `insufficient_evidence`. That confirms the abstention path but cannot show answer quality.
+
+Real handbook text was used next: Section 5.C Retaking of Failed Subjects, printed page 33, PDF page 45.
 
 | Case | Result |
 |---|---|
-| Covered question ("How can a student take temporary leave?") | `answered`, one validated citation, fixture warning shown, about 4 s. |
-| Uncovered question ("What is the tuition fee for 2026/27?") | `insufficient_evidence`, no citation, no invented answer, about 2 s. |
-| Follow-up ("And what do I do when I come back?") | Query rewritten from 80-token budget failure to 400; retrieval query became "What does a student do when returning from temporary leave?"; the correct passage was cited, about 6 to 12 s. |
+| "Can I retake a subject I failed?" | `answered`, cited `sec5_C_001`, conditions correct: grades F, S or U; 21-credit study-load cap; at most two retakes; Form AR160 for a second retake; only the final attempt counts towards GPA. |
+| Follow-up: "How many times can I do it?" | Query rewritten to "How many retakes are allowed for a failed subject?", answered with the two-retake limit and the same citation, 2.9 s. |
+| "What is the tuition fee for 2026/27?" | `insufficient_evidence`, no citations, no invented figure. |
 
-The 80-token rewrite budget was the only real failure found: every token went to reasoning and the content came back empty, so the service silently used its concatenation fallback. This is exactly why the empty-content case raises an error rather than returning an empty string.
+Two issues were found and fixed during this test.
 
-Latency is for one answer or one follow-up on the V4 Pro model and excludes retrieval. The live demo should warm both the retriever and the model before the five-minute window starts.
+1. **Token budget.** A follow-up rewrite with an 80-token budget returned empty content and silently fell back to query concatenation. The rewrite now uses 400 tokens and the client default is 1500.
+2. **Status semantics.** The model could cite passages it had consulted while concluding that they do not answer the question, which produced `answered` for an abstention. The response schema now includes an explicit `status` field; a model-declared `insufficient_evidence` is returned with no citations attached.
+
+Latency on this machine was 1.3 to 2.9 s per answer, excluding retrieval. The retriever's first call still needs warm-up before the live demo.
 
 ## Pending confirmations
 
@@ -158,7 +166,7 @@ Latency is for one answer or one follow-up on the V4 Pro model and excludes retr
 - [x] Integration issues and proposed changes recorded.
 - [x] Answer-service contract, statuses and citation rules documented.
 - [x] `src/contracts.py` added by Member 2 in `dc1843b`; import direction and error semantics resolved.
-- [x] DeepSeek model identifier confirmed as `deepseek-v4-pro`.
+- [x] DeepSeek model identifier confirmed as `deepseek-flash` (V4.1 Flash).
 - [x] Answer service implemented against the mock: `src/conversation.py`, `src/citations.py`, `src/llm_client.py`, 30 unit tests passing.
 - [x] Independent review completed; findings fixed. Ungrounded text can no longer escape through the clarification branch, one contaminated fixture chunk now flags the whole answer, retrieval `ValueError` and connection resets map to `status: "error"`, malformed model output is reported as an error rather than a coverage gap, and the HTTP client has tests.
 - [ ] End-to-end run against the real retriever and the real DeepSeek model, once the key and the handbook index exist. The default retrieval import used by the service resolves only after `feature/retrieval` is merged.

@@ -93,6 +93,21 @@ class AnswerServiceTests(unittest.TestCase):
         self.assertEqual(result["answer"], NO_EVIDENCE_ANSWER)
         self.assertEqual(result["citation_chunk_ids"], [])
 
+    def test_model_declared_insufficient_evidence_strips_citations(self):
+        reply = json.dumps(
+            {
+                "answer": "The provided handbook does not cover tuition fees.",
+                "status": "insufficient_evidence",
+                "citation_ids": ["sec5_C_001"],
+                "clarification_question": None,
+            }
+        )
+        result = answer_question("What is the tuition fee?", retrieve=fake_retriever(CHUNKS), llm=FakeLlm(reply))
+        self.assertEqual(result["status"], "insufficient_evidence")
+        self.assertEqual(result["citation_chunk_ids"], [])
+        self.assertEqual(result["cited_chunks"], [])
+        self.assertIn("does not cover", result["answer"])
+
     def test_empty_retrieval_skips_model(self):
         llm = FakeLlm()
         result = answer_question("Anything?", retrieve=fake_retriever([]), llm=llm)

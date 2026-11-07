@@ -14,7 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_BASE_URL = "https://api.deepseek.com"
-DEFAULT_MODEL = "deepseek-v4-pro"
+DEFAULT_MODEL = "deepseek-flash"
 DEFAULT_TIMEOUT = 60
 
 
@@ -109,7 +109,9 @@ class DeepSeekClient:
             error.retryable = exc.code >= 500 or exc.code == 429
             raise error from exc
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
-            raise LlmError("DeepSeek returned a response that is not valid JSON") from exc
+            error = LlmError("DeepSeek returned a response that is not valid JSON")
+            error.retryable = True
+            raise error from exc
         except (urllib.error.URLError, TimeoutError, OSError, http.client.HTTPException) as exc:
             error = LlmError(f"Could not reach DeepSeek at {self.base_url}: {exc}")
             error.retryable = True
@@ -130,5 +132,7 @@ class DeepSeekClient:
         except (KeyError, IndexError, TypeError) as exc:
             raise LlmError("DeepSeek response did not contain an assistant message") from exc
         if not isinstance(content, str) or not content.strip():
-            raise LlmError("DeepSeek returned an empty answer")
+            error = LlmError("DeepSeek returned an empty answer")
+            error.retryable = True
+            raise error
         return content

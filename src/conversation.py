@@ -36,19 +36,21 @@ Rules:
 - If no passage answers the question, report that the retrieved evidence is insufficient.
 - If the student's intended action is ambiguous and a short question would distinguish it, ask for clarification even when the retrieved passages are incomplete. For a study break, ask whether the student means missing classes temporarily, pausing their programme, or leaving permanently. Use those descriptions without examples or form names: withdrawing from a subject is not the same as missing classes. Do not assume withdrawal is intended or replace these possibilities with unrelated options.
 - Answer in plain English, at most about 150 words unless the question needs more.
+- Make answers easy to read: use short paragraphs and Markdown bullet or numbered lists when organizing multiple points or steps. A short, direct answer can be a single paragraph.
 
 EVIDENCE
 {evidence}
 
 Reply with a JSON object only:
 {{"answer": "your answer", "status": "answered", "citation_ids": ["<chunk_id>", "..."], "clarification_question": null}}
+Encode line breaks in JSON strings as escaped newline characters (\\n).
 
 Set "status" to:
 - "answered" when the evidence supports a complete answer;
 - "insufficient_evidence" when the evidence does not answer the question;
 - "needs_clarification" only when one short question would change the answer.
 
-Citation IDs must be taken from the labels in square brackets above. Every factual sentence must be supported by at least one cited passage. Do not cite a passage for a claim it does not support."""
+Citation IDs must be taken from the labels in square brackets above. Return the IDs of the supporting passages in citation_ids, but do not include citation markers or IDs in the answer text. Every factual sentence must be supported by at least one cited passage. Do not cite a passage for a claim it does not support."""
 
 REWRITE_PROMPT = """Rewrite the student's latest message as a standalone search query for a handbook search.
 Resolve pronouns and references using the conversation. Keep names, codes and numbers.

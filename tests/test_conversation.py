@@ -72,6 +72,19 @@ def fake_retriever(chunks=None, error=None):
 
 
 class AnswerServiceTests(unittest.TestCase):
+    def test_formatted_answer_survives_json_parsing(self):
+        answer = (
+            "Here are the relevant rules. [sec5_C_001]\n\n"
+            "- A failed subject may be retaken. [sec5_C_001]\n"
+            "- Programme requirements apply. [sec5_C_001]\n\n"
+            "Check your programme requirements. [sec5_C_001]"
+        )
+        llm = FakeLlm(model_answer(answer=answer))
+        result = answer_question("What are the retake rules?", retrieve=fake_retriever(CHUNKS), llm=llm)
+        self.assertEqual(result["status"], "answered")
+        self.assertEqual(result["answer"], answer)
+        self.assertEqual(result["citation_chunk_ids"], ["sec5_C_001"])
+
     def test_answered_with_validated_citations(self):
         llm = FakeLlm(model_answer())
         result = answer_question("Can I retake a failed subject?", retrieve=fake_retriever(CHUNKS), llm=llm)

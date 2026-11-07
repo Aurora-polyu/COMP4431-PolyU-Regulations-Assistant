@@ -136,3 +136,46 @@ def test_mixed_fixture_and_handbook_evidence_warning_reaches_ui():
         ask(app, "Question")
         assert FIXTURE_WARNING in contents(app)[1]
         assert "private detail" not in contents(app)[1]
+
+
+def test_citation_markers_are_hidden_without_changing_history():
+    second = dict(CHUNK, chunk_id="test_2", section="6.C Academic Probation")
+    answer = "First rule [test_1]. Another [test_2], repeated [test_1]. Unmatched [other]."
+    displayed = "First rule. Another, repeated. Unmatched [other]."
+    with patch("src.conversation.answer_question", return_value=response(answer=answer, cited_chunks=[CHUNK, second])) as service:
+        app = start()
+        ask(app, "Question")
+        assert contents(app)[1] == answer
+        assert any(item.value == displayed for item in app.markdown)
+        assert app.get("popover")[0].proto.popover.label.startswith("5.C Retaking")
+        assert app.get("popover")[1].proto.popover.label.startswith("6.C Academic Probation")
+        assert app.text[0].value == CHUNK["text"]
+        app.run()
+        assert any(item.value == displayed for item in app.markdown)
+        ask(app, "Follow-up")
+        assert service.call_args.args[1][1] == {"role": "assistant", "content": answer}
+        app.button[0].click().run()
+        assert not app.get("popover")
+
+
+def test_answer_without_markers_has_no_sources_fallback():
+    answer = "An answer without inline citations."
+    with patch("src.conversation.answer_question", return_value=response(answer=answer)):
+        app = start()
+        ask(app, "Question")
+        assert any(item.value == answer for item in app.markdown)
+        assert len(app.get("popover")) == 1
+        assert not any("Sources:" in item.value for item in app.markdown)
+
+
+def test_formatted_answer_hides_citations_and_preserves_history():
+    answer = "Rules: [test_1]\n\n- First point. [test_1]\n- Second point. [test_1]\n\nA final note. [test_1]"
+    displayed = "Rules:\n\n- First point.\n- Second point.\n\nA final note."
+    with patch("src.conversation.answer_question", return_value=response(answer=answer)) as service:
+        app = start()
+        ask(app, "Question")
+        assert contents(app)[1] == answer
+        assert any(item.value == displayed for item in app.markdown)
+        ask(app, "Follow-up")
+        assert service.call_args.args[1][1] == {"role": "assistant", "content": answer}
+        assert any(item.value == displayed for item in app.markdown)

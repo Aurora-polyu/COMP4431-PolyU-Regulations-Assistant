@@ -1,5 +1,7 @@
 """English-language Streamlit interface for the handbook answer service."""
 
+import re
+
 import streamlit as st
 
 from src.conversation import FIXTURE_WARNING, NO_EVIDENCE_ANSWER, answer_question
@@ -40,7 +42,7 @@ st.markdown(
     }
     [data-testid="stSidebar"] [data-testid="stButton"] button:hover { background: var(--red-deep); color: white; }
     .sidebar-title { font-family: "Source Sans 3", sans-serif; font-size: 21px; font-weight: 600; line-height: 1.3; overflow-wrap: break-word; color: var(--ink); }
-    .welcome { margin: 50vh auto 32px; max-width: 700px; text-align: center; font-size: 24px; font-weight: 600; line-height: 1.4; color: #77777A; }
+    .welcome { margin: 50vh auto 32px; max-width: 700px; text-align: center; font-size: 24px; font-weight: 600; font-style: italic; line-height: 1.4; color: #77777A; }
     [data-testid="stChatMessage"] { background: transparent; padding: 0; margin: 16px 0; }
     [data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) { flex-direction: row-reverse; }
     [data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) [data-testid="stChatMessageContent"] {
@@ -54,7 +56,12 @@ st.markdown(
     [data-testid="stBottomBlockContainer"] { max-width: 880px; margin-left: auto; margin-right: auto; }
     [data-testid="stChatInput"] { min-height: 56px; border: 1px solid #E7E0DD; border-radius: 16px; }
     [data-testid="stChatInput"]:focus-within { border-color: var(--red); }
-    [data-testid="stPopover"] > button { color: var(--red-deep); border: 1px solid #E7E0DD; border-radius: 8px; text-align: left; }
+    [data-testid="stPopover"] button {
+        color: var(--red-deep); border: 1px solid #E7E0DD; border-radius: 8px;
+        justify-content: flex-start !important; text-align: left !important;
+    }
+    [data-testid="stPopover"] button [data-testid="stMarkdownContainer"],
+    [data-testid="stPopover"] button p { text-align: left !important; }
     @media (max-width: 767px) {
         [data-testid="stAppScrollToBottomContainer"] { left: 320px !important; width: calc(100% - 320px) !important; }
     }
@@ -112,11 +119,24 @@ def _display_response(resp):
     return f"{FIXTURE_WARNING}\n\n{content}" if fixture else content
 
 
+def _remove_citation_markers(content, chunks):
+    """Hide cited passage IDs from display without changing conversation history."""
+    ids = {chunk.get("chunk_id") for chunk in chunks
+           if isinstance(chunk, dict) and isinstance(chunk.get("chunk_id"), str)}
+
+    def replace(match):
+        return "" if match.group(1) in ids else match.group(0)
+
+    return re.sub(r"[ \t]*\[([^\[\]\n]+)\]", replace, content)
+
+
 def _render_message(message):
     with st.chat_message(message["role"], avatar=f"assets/{message['role']}_avatar.svg"):
-        st.markdown(message["content"])
-        for chunk in message.get("chunks", []):
-            title = (f"📄 {chunk.get('section', 'Source')} · "
+        chunks = message.get("chunks", [])
+        content = _remove_citation_markers(message["content"], chunks) if message["role"] == "assistant" else message["content"]
+        st.markdown(content)
+        for chunk in chunks:
+            title = (f"{chunk.get('section', 'Source')} · "
                      f"printed p. {chunk.get('printed_page', '?')} / PDF p. {chunk.get('pdf_page', '?')}")
             with st.popover(title, width="stretch"):
                 with st.container(height=300, border=False):

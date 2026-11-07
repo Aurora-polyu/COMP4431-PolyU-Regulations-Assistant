@@ -331,13 +331,15 @@ def render_turn(question):
             status = resp.get("status", "error")
 
             if status == "answered":
-                st.markdown(resp["answer"])
+                content = resp["answer"]
             elif status == "needs_clarification":
-                st.markdown(resp.get("clarification_question") or t("clarify_fallback"))
+                clarification = resp.get("clarification_question") or t("clarify_fallback")
+                content = "\n\n".join(part for part in (resp.get("answer"), clarification) if part)
             elif status == "insufficient_evidence":
-                st.markdown(t("insufficient"))
+                content = t("insufficient")
             else:
-                st.markdown(t("error"))
+                content = t("error")
+            st.markdown(content)
 
             chunks = resp.get("cited_chunks", [])
             for c in chunks:
@@ -352,14 +354,14 @@ def render_turn(question):
             st.session_state.messages.append(
                 {
                     "role": "assistant",
-                    "content": resp.get("answer", "") or resp.get("clarification_question", ""),
+                    "content": content,
                     "chunks": chunks,
                 }
             )
-        except Exception as e:
-            st.markdown(t("error"))
-            st.caption("Debug: {}".format(e))
-            st.session_state.messages.append({"role": "assistant", "content": "[error]", "chunks": []})
+        except Exception:
+            content = t("error")
+            st.markdown(content)
+            st.session_state.messages.append({"role": "assistant", "content": content, "chunks": []})
 
 
 # ---------------------------------------------------------------------------

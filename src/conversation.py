@@ -49,6 +49,12 @@ Return only the query, on one line, with no quotes or explanation."""
 JSON_RETRY_PROMPT = "Return only a valid JSON object matching the requested schema, with no code fences or extra text."
 
 
+def _mark_fixture(answer: str, source: str) -> str:
+    if source == "fixture" and answer:
+        return f"{FIXTURE_WARNING}\n\n{answer}"
+    return answer
+
+
 def _response(
     *,
     answer: str = "",
@@ -190,8 +196,6 @@ def answer_question(
     query = build_retrieval_query(question, history, llm)
     try:
         chunks = retrieve(query, top_k=top_k)
-    except ValueError:
-        raise
     except Exception as exc:
         return _response(
             status="error",
@@ -211,7 +215,13 @@ def answer_question(
         return _response(status="error", answer=str(exc))
 
     if parsed is None:
-        return _response(status="insufficient_evidence", answer=NO_EVIDENCE_ANSWER)
+        return _response(
+            status="error",
+            answer=(
+                "The language model did not return a usable answer. "
+                "Please try again; if this continues, check the API configuration."
+            ),
+        )
 
     answer = parsed.get("answer") if isinstance(parsed.get("answer"), str) else ""
     answer = answer.strip()
@@ -225,9 +235,10 @@ def answer_question(
     source = "fixture" if is_fixture(chunks) else "handbook"
 
     if clarification:
+        # An answer shown next to a clarifying question must still be grounded.
         return _response(
             status="needs_clarification",
-            answer=answer,
+            answer=_mark_fixture(answer if citation_ids else "", source),
             citation_chunk_ids=citation_ids,
             cited_chunks=cited_chunks,
             clarification_question=clarification,
@@ -237,12 +248,9 @@ def answer_question(
     if not answer or not citation_ids:
         return _response(status="insufficient_evidence", answer=NO_EVIDENCE_ANSWER, evidence_source=source)
 
-    if source == "fixture":
-        answer = f"{FIXTURE_WARNING}\n\n{answer}"
-
     return _response(
         status="answered",
-        answer=answer,
+        answer=_mark_fixture(answer, source),
         citation_chunk_ids=citation_ids,
         cited_chunks=cited_chunks,
         evidence_source=source,

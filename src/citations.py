@@ -45,7 +45,11 @@ def validate_citations(raw_ids: object, retrieved: list[dict]) -> tuple[list[str
 
 
 def is_fixture(chunks: list[dict]) -> bool:
-    """True when every chunk comes from the fictional development fixture."""
-    return bool(chunks) and all(
+    """True when any chunk comes from the fictional development fixture.
+
+    One contaminated passage is enough to distrust the whole answer, so this
+    deliberately uses any() rather than all().
+    """
+    return any(
         str(chunk.get("chunk_id", "")).startswith(_FIXTURE_PREFIX) for chunk in chunks
     )

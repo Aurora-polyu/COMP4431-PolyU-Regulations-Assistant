@@ -53,7 +53,8 @@ class CitationTests(unittest.TestCase):
         self.assertTrue(is_fixture(fixture))
         self.assertFalse(is_fixture([CHUNK_A]))
         self.assertFalse(is_fixture([]))
-        self.assertFalse(is_fixture([CHUNK_A, {"chunk_id": "sample_leave_001"}]))
+        # One contaminated passage is enough to distrust the answer.
+        self.assertTrue(is_fixture([CHUNK_A, {"chunk_id": "sample_leave_001"}]))
 
 
 if __name__ == "__main__":

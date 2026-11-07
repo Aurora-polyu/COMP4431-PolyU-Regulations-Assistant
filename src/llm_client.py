@@ -4,6 +4,7 @@ The key is read from the local .env file or the environment. It is never
 written to code, logs or the repository.
 """
 
+import http.client
 import json
 import os
 import time
@@ -103,12 +104,12 @@ class DeepSeekClient:
             error = LlmError(f"DeepSeek returned HTTP {exc.code}: {detail}")
             error.retryable = exc.code >= 500 or exc.code == 429
             raise error from exc
-        except (urllib.error.URLError, TimeoutError) as exc:
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            raise LlmError("DeepSeek returned a response that is not valid JSON") from exc
+        except (urllib.error.URLError, TimeoutError, OSError, http.client.HTTPException) as exc:
             error = LlmError(f"Could not reach DeepSeek at {self.base_url}: {exc}")
             error.retryable = True
             raise error from exc
-        except json.JSONDecodeError as exc:
-            raise LlmError("DeepSeek returned a response that is not valid JSON") from exc
 
     @staticmethod
     def _error_detail(exc: urllib.error.HTTPError) -> str:

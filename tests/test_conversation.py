@@ -125,17 +125,47 @@ class AnswerServiceTests(unittest.TestCase):
         self.assertEqual(result["status"], "needs_clarification")
         self.assertEqual(result["clarification_question"], "Which programme are you in?")
 
+    def test_clarification_does_not_leak_uncited_answer(self):
+        llm = FakeLlm(
+            model_answer(
+                ids=[],
+                answer="The deadline is 31 March and the fee is 500 dollars.",
+                clarification="Which programme are you in?",
+            )
+        )
+        result = answer_question("What are the rules?", retrieve=fake_retriever(CHUNKS), llm=llm)
+        self.assertEqual(result["status"], "needs_clarification")
+        self.assertEqual(result["answer"], "")
+        self.assertEqual(result["citation_chunk_ids"], [])
+
+    def test_mixed_fixture_evidence_is_flagged(self):
+        llm = FakeLlm(model_answer(ids=["sec5_C_001"], answer="Submit form ZX101."))
+        result = answer_question(
+            "How do I take leave?", retrieve=fake_retriever([*CHUNKS, *FIXTURE]), llm=llm
+        )
+        self.assertEqual(result["evidence_source"], "fixture")
+        self.assertIn("Development data", result["answer"])
+
+    def test_retrieval_value_error_returns_error_status(self):
+        result = answer_question(
+            "Can I retake a failed subject?",
+            retrieve=fake_retriever(error=ValueError("top_k must be positive")),
+            llm=FakeLlm(),
+        )
+        self.assertEqual(result["status"], "error")
+        self.assertIn("Retrieval failed", result["answer"])
+
     def test_malformed_json_is_retried_once(self):
         llm = FakeLlm("not json at all", model_answer())
         result = answer_question("Can I retake a failed subject?", retrieve=fake_retriever(CHUNKS), llm=llm)
         self.assertEqual(result["status"], "answered")
         self.assertEqual(len(llm.calls), 2)
 
-    def test_malformed_json_twice_abstains(self):
+    def test_malformed_json_twice_is_reported_as_error(self):
         llm = FakeLlm("nope", "still nope")
         result = answer_question("Can I retake a failed subject?", retrieve=fake_retriever(CHUNKS), llm=llm)
-        self.assertEqual(result["status"], "insufficient_evidence")
-        self.assertEqual(result["answer"], NO_EVIDENCE_ANSWER)
+        self.assertEqual(result["status"], "error")
+        self.assertNotIn("does not appear to cover", result["answer"])
 
     def test_model_error_returns_error_status(self):
         llm = FakeLlm(LlmError("DeepSeek returned HTTP 401"))

@@ -41,6 +41,17 @@ These are requests to Member 2. Member 2's files have not been modified.
 
 Not requested: a `score` or `rank` field. The answer service does not need retrieval scores and will not use them as evidence strength.
 
+### Follow-up: Member 2 response (commit dc1843b)
+
+Member 2 resolved the review on `feature/retrieval`:
+
+- `RetrievedChunk` and `RetrievalError` now live in the dependency-free `src/contracts.py`; existing imports remain compatible and the call signature and chunk fields are unchanged.
+- The retrieval documentation now distinguishes `ValueError`, `RetrievalError` and an empty result, and confirms that callers may issue multiple queries and deduplicate by `chunk_id`.
+- A local spot check on the three-chunk synthetic index measured about 11.6 s for the first call and 0.009 to 0.017 s for warm calls in the same process. This is a synthetic measurement, not a handbook benchmark. The live demo must warm the retriever before the presentation starts.
+- Fixture labelling stays on the answer-service side, as proposed.
+
+The answer service keeps catching retrieval failures as `RuntimeError` rather than importing `src.contracts`, so it remains testable without the retrieval dependencies. `RetrievalError` subclasses `RuntimeError`, so this stays correct after the merge.
+
 ## Answer-service contract
 
 ```python
@@ -92,6 +103,8 @@ Status rules:
 4. If the model produces an answer but no ID survives validation, the response is converted to `insufficient_evidence`.
 5. `cited_chunks` is built from the original retrieved objects, so the displayed passage is exactly what retrieval returned.
 
+Membership is necessary but not sufficient: a valid `chunk_id` does not prove that the passage supports the sentence it is attached to. That judgment needs the manual evaluation set; the service does not claim support beyond "the cited passage was retrieved".
+
 ### Grounding policy (system prompt constraints)
 
 - Answer only from the retrieved passages. No general knowledge, no inference beyond the text.
@@ -109,7 +122,7 @@ Status rules:
 | Empty retrieval result | `status: "insufficient_evidence"`, no model call needed. |
 | Model API error | One retry with a short backoff, then `status: "error"`. |
 | Missing or invalid API key | Fail at start-up with a clear message; do not silently answer without a model. |
-| Malformed model output | Retry once with a stricter instruction, then `insufficient_evidence`. Never fabricate citations to satisfy the format. |
+| Malformed model output | Retry once with a stricter instruction, then `status: "error"`. A parse failure is a model problem, not evidence that the handbook lacks the answer, so it must never be reported as `insufficient_evidence`. Never fabricate citations to satisfy the format. |
 
 ## Environment
 
@@ -129,7 +142,8 @@ Status rules:
 - [x] Member 2 Stage 1 contract reviewed; call signature and fields accepted.
 - [x] Integration issues and proposed changes recorded.
 - [x] Answer-service contract, statuses and citation rules documented.
-- [ ] Member 2 changes in `src/contracts.py` agreed. Deferred by Member 2 to the final merge; the answer service does not depend on it, because retrieval failures are caught as `RuntimeError` and no retrieval type is imported at module load.
+- [x] `src/contracts.py` added by Member 2 in `dc1843b`; import direction and error semantics resolved.
 - [ ] Team confirms the DeepSeek model identifier.
-- [x] Answer service implemented against the mock: `src/conversation.py`, `src/citations.py`, `src/llm_client.py`, 20 unit tests passing.
-- [ ] Independent review of the implementation.
+- [x] Answer service implemented against the mock: `src/conversation.py`, `src/citations.py`, `src/llm_client.py`, 30 unit tests passing.
+- [x] Independent review completed; findings fixed. Ungrounded text can no longer escape through the clarification branch, one contaminated fixture chunk now flags the whole answer, retrieval `ValueError` and connection resets map to `status: "error"`, malformed model output is reported as an error rather than a coverage gap, and the HTTP client has tests.
+- [ ] End-to-end run against the real retriever and the real DeepSeek model, once the key and the handbook index exist. The default retrieval import used by the service resolves only after `feature/retrieval` is merged.

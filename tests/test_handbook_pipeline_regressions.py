@@ -64,11 +64,11 @@ def test_incorrect_document_length_fails():
 
 @needs_pdf
 def test_validator_rejects_mismatched_printed_page(tmp_path):
-    chunks = [json.loads(line) for line in (ROOT / "data/chunks.jsonl").read_text().splitlines()]
+    chunks = [json.loads(line) for line in (ROOT / "data/chunks.jsonl").read_text(encoding="utf-8").splitlines()]
     assert chunks[1]["printed_page"] == chunks[2]["printed_page"] == 2
     chunks[1]["printed_page"] = 3
     path = tmp_path / "bad.jsonl"
-    path.write_text("".join(json.dumps(chunk, ensure_ascii=False) + "\n" for chunk in chunks))
+    path.write_text("".join(json.dumps(chunk, ensure_ascii=False) + "\n" for chunk in chunks), encoding="utf-8")
     errors, _ = validate(path, PDF, 450, 100)
     assert any("sec2_A_001" in error and "printed page 2, not 3" in error for error in errors)
     assert not any("printed pages without any chunk" in error for error in errors)
@@ -76,10 +76,10 @@ def test_validator_rejects_mismatched_printed_page(tmp_path):
 
 @needs_pdf
 def test_validator_rejects_divider_page(tmp_path):
-    chunks = [json.loads(line) for line in (ROOT / "data/chunks.jsonl").read_text().splitlines()]
+    chunks = [json.loads(line) for line in (ROOT / "data/chunks.jsonl").read_text(encoding="utf-8").splitlines()]
     chunks[1]["pdf_page"] = 10
     path = tmp_path / "bad.jsonl"
-    path.write_text("".join(json.dumps(chunk, ensure_ascii=False) + "\n" for chunk in chunks))
+    path.write_text("".join(json.dumps(chunk, ensure_ascii=False) + "\n" for chunk in chunks), encoding="utf-8")
     errors, _ = validate(path, PDF, 450, 100)
     assert any("sec2_A_001" in error and "not a numbered body page" in error for error in errors)
 

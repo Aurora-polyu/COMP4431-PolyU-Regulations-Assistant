@@ -13,6 +13,7 @@ __pycache__/
 .cache/
 
 # Local indexes and generated data
+handbook-index/
 chroma_db/
 chroma/
 data/*

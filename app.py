@@ -54,8 +54,7 @@ st.markdown(
     [data-testid="stBottomBlockContainer"] { max-width: 880px; margin-left: auto; margin-right: auto; }
     [data-testid="stChatInput"] { min-height: 56px; border: 1px solid #E7E0DD; border-radius: 16px; }
     [data-testid="stChatInput"]:focus-within { border-color: var(--red); }
-    [data-testid="stExpander"] { border: 1px solid #E7E0DD; border-radius: 8px; }
-    [data-testid="stExpander"] summary { color: var(--red-deep); }
+    [data-testid="stPopover"] > button { color: var(--red-deep); border: 1px solid #E7E0DD; border-radius: 8px; text-align: left; }
     @media (max-width: 767px) {
         [data-testid="stAppScrollToBottomContainer"] { left: 320px !important; width: calc(100% - 320px) !important; }
     }
@@ -119,8 +118,9 @@ def _render_message(message):
         for chunk in message.get("chunks", []):
             title = (f"📄 {chunk.get('section', 'Source')} · "
                      f"printed p. {chunk.get('printed_page', '?')} / PDF p. {chunk.get('pdf_page', '?')}")
-            with st.expander(title, expanded=False):
-                st.text(chunk.get("text", ""))
+            with st.popover(title, width="stretch"):
+                with st.container(height=300, border=False):
+                    st.text(chunk.get("text", ""))
 
 
 def render_turn(question):

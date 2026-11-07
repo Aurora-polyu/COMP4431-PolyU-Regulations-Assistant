@@ -44,15 +44,15 @@ def test_answer_followup_history_citations_rerun_and_reset():
         ask(app, "Undergraduate")
         assert seen[1][1] == [{"role": "user", "content": "First question"},
                                {"role": "assistant", "content": "Which programme?"}]
-        assert len(app.expander) == 1
-        assert "5.C Retaking" in app.expander[0].label
-        assert "printed p. 33 / PDF p. 45" in app.expander[0].label
+        assert len(app.get("popover")) == 1
+        assert "5.C Retaking" in app.get("popover")[0].proto.popover.label
+        assert "printed p. 33 / PDF p. 45" in app.get("popover")[0].proto.popover.label
         assert app.text[0].value == CHUNK["text"]
         app.run()
         assert len(seen) == 2 and len(contents(app)) == 4
         app.button[0].click().run()
         assert contents(app) == []
-        assert len(app.expander) == 0
+        assert len(app.get("popover")) == 0
         assert not app.exception
 
 
@@ -65,7 +65,7 @@ def test_welcome_disappears_on_submit_and_returns_on_reset():
         ask(app, "A question")
         assert not any(motto in item.value for item in app.markdown)
         assert service.call_args.args == ("A question", [])
-        assert app.expander[0].proto.expanded is False
+        assert app.get("popover")[0].proto.popover.open is False
         app.button[0].click().run()
         assert any(motto in item.value for item in app.markdown)
         assert not app.exception
@@ -81,7 +81,7 @@ def test_fixture_warning_survives_all_statuses(status):
         app.run()
         assert any(FIXTURE_WARNING in item.value for item in app.markdown)
         if status != "answered":
-            assert not app.expander
+            assert not app.get("popover")
 
 
 def test_safe_error_guidance_and_exceptions_do_not_expose_secrets():

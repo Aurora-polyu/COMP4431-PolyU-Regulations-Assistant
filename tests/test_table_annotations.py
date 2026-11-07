@@ -14,7 +14,7 @@ from src.conversation import answer_question
 
 
 def test_promoted_chunks_include_reviewed_layout_and_keep_ids():
-    chunks = [json.loads(line) for line in (ROOT / "data/chunks.jsonl").read_text().splitlines()]
+    chunks = [json.loads(line) for line in (ROOT / "data/chunks.jsonl").read_text(encoding="utf-8").splitlines()]
     by_id = {c["chunk_id"]: c for c in chunks}
     assert len(by_id) == len(chunks)
     for key, annotation in ANNOTATIONS.items():
@@ -36,13 +36,13 @@ def test_promoted_chunks_include_reviewed_layout_and_keep_ids():
 def test_missing_and_duplicate_annotations_are_rejected():
     with pytest.raises(ValueError, match="missing expected chunks"):
         annotate([])
-    chunks = [json.loads(line) for line in (ROOT / "data/chunks.jsonl").read_text().splitlines()]
+    chunks = [json.loads(line) for line in (ROOT / "data/chunks.jsonl").read_text(encoding="utf-8").splitlines()]
     with pytest.raises(ValueError, match="already annotated"):
         annotate(chunks)
 
 
 def test_emergency_question_receives_both_source_checked_numbers():
-    chunks = [json.loads(line) for line in (ROOT / "data/chunks.jsonl").read_text().splitlines()]
+    chunks = [json.loads(line) for line in (ROOT / "data/chunks.jsonl").read_text(encoding="utf-8").splitlines()]
     contact = next(c for c in chunks if c["chunk_id"] == "app3_H_001")
 
     class InspectingModel:

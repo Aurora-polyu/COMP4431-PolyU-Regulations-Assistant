@@ -123,7 +123,7 @@ def main(argv: list[str] | None = None) -> int:
     stats["source_file"] = args.pdf.name
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    with args.out.open("w", encoding="utf-8") as handle:
+    with args.out.open("w", encoding="utf-8", newline="\n") as handle:
         for chunk in chunks:
             handle.write(json.dumps(chunk.as_dict(), ensure_ascii=False) + "\n")
 

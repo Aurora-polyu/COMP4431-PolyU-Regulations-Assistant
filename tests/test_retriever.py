@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import warnings
 from contextlib import redirect_stderr
 from pathlib import Path
 from unittest.mock import patch
@@ -52,7 +53,7 @@ class FakeModel:
 
 class UnitTests(unittest.TestCase):
     def test_jsonl_validation_and_errors(self):
-        chunks = json.loads(FIXTURE.read_text())
+        chunks = json.loads(FIXTURE.read_text(encoding="utf-8"))
         source = Path("chunks.jsonl")
         raw = ("\n" + "\n".join(json.dumps(c) for c in chunks) + "\n").encode()
         self.assertEqual(parse_chunks(raw, source), chunks)
@@ -89,7 +90,7 @@ class UnitTests(unittest.TestCase):
             self.assertFalse(index.exists())
 
     def test_validation(self):
-        chunks = json.loads(FIXTURE.read_text())
+        chunks = json.loads(FIXTURE.read_text(encoding="utf-8"))
         self.assertEqual(validate_chunks(chunks), chunks)
         for invalid in ([], [chunks[0], chunks[0]], [dict(chunks[0], printed_page=True)],
                         [dict(chunks[0], text=" ")], [dict(chunks[0], pdf_page=0)], [{}]):
@@ -110,19 +111,50 @@ class UnitTests(unittest.TestCase):
                 retrieve("question")
 
 
+class ChromaTemporaryDirectory(tempfile.TemporaryDirectory):
+    """Keep test assertions meaningful when Windows retains Chroma file handles."""
+
+    def cleanup(self):
+        _load.cache_clear()
+        try:
+            super().cleanup()
+        except PermissionError:
+            if sys.platform != "win32":
+                raise
+            warnings.warn(
+                f"Windows could not remove the Chroma test directory {self.name}; "
+                "remove it after the Python process exits.",
+                UserWarning,
+                stacklevel=2,
+            )
+
+
+class TemporaryDirectoryTests(unittest.TestCase):
+    def test_windows_lock_warns_but_other_platforms_fail(self):
+        directory = ChromaTemporaryDirectory()
+        try:
+            with patch.object(tempfile.TemporaryDirectory, "cleanup", side_effect=PermissionError("locked")):
+                with patch("sys.platform", "win32"), self.assertWarnsRegex(UserWarning, "could not remove"):
+                    directory.cleanup()
+                with patch("sys.platform", "linux"), self.assertRaises(PermissionError):
+                    directory.cleanup()
+        finally:
+            directory.cleanup()
+
+
 class IntegrationTests(unittest.TestCase):
     def test_jsonl_build_search_and_stale_source(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with ChromaTemporaryDirectory() as directory:
             root = Path(directory)
             source, index = root / "chunks.jsonl", root / "index"
-            chunks = json.loads(FIXTURE.read_text())
+            chunks = json.loads(FIXTURE.read_text(encoding="utf-8"))
             source.write_text("\n".join(json.dumps(c) for c in chunks) + "\n", encoding="utf-8")
             with patch("scripts.build_index.load_model", return_value=FakeModel()), \
                  patch("src.retriever.load_model", return_value=FakeModel()), \
                  patch.dict(os.environ, {"RETRIEVAL_INDEX_DIR": str(index), "RETRIEVAL_MODEL": "test-model"}):
                 build_index(source, index, "test-model")
                 self.assertEqual(retrieve("ZX101", 3)[0], chunks[0])
-                source.write_text(source.read_text() + "\n", encoding="utf-8")
+                source.write_text(source.read_text(encoding="utf-8") + "\n", encoding="utf-8")
                 with self.assertRaisesRegex(RetrievalError, "changed"):
                     retrieve("ZX101")
                 _load.cache_clear()
@@ -151,30 +183,30 @@ class IntegrationTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "cannot replace"):
                     build_index(source, index, "test-model")
                 load.assert_not_called()
-            self.assertEqual(manifest_path.read_text(), original)
+            self.assertEqual(manifest_path.read_text(encoding="utf-8"), original)
 
     def test_sample_can_rebuild_its_own_index(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with ChromaTemporaryDirectory() as directory:
             index = Path(directory) / "sample-index"
             with patch("scripts.build_index.load_model", return_value=FakeModel()):
                 build_index(FIXTURE, index, "test-model")
-                first = json.loads((index / "manifest.json").read_text())
+                first = json.loads((index / "manifest.json").read_text(encoding="utf-8"))
                 build_index(FIXTURE, index, "test-model")
-                second = json.loads((index / "manifest.json").read_text())
+                second = json.loads((index / "manifest.json").read_text(encoding="utf-8"))
             self.assertNotEqual(first["generation"], second["generation"])
 
     def test_build_reload_search_stale_and_rebuild(self):
-        with tempfile.TemporaryDirectory() as directory:
+        with ChromaTemporaryDirectory() as directory:
             root = Path(directory)
             source, index = root / "chunks.json", root / "index"
-            chunks = json.loads(FIXTURE.read_text())
+            chunks = json.loads(FIXTURE.read_text(encoding="utf-8"))
             source.write_text(json.dumps(chunks))
             with patch("scripts.build_index.load_model", return_value=FakeModel()), \
                  patch("src.retriever.load_model", return_value=FakeModel()) as loader, \
                  patch.dict(os.environ, {"RETRIEVAL_INDEX_DIR": str(index), "RETRIEVAL_MODEL": "test-model"}):
                 build_index(source, index, "test-model")
                 _load.cache_clear()
-                manifest = json.loads((index / "manifest.json").read_text())
+                manifest = json.loads((index / "manifest.json").read_text(encoding="utf-8"))
                 self.assertEqual(manifest["model_revision"], "a" * 40)
                 results = retrieve("ZX101", 10)
                 loader.assert_called_once_with("test-model", local_only=True, revision="a" * 40)
@@ -200,7 +232,7 @@ class IntegrationTests(unittest.TestCase):
 
     def test_bm25_common_identifier_prefers_more_occurrences(self):
         from src.retriever import HybridRetriever
-        with tempfile.TemporaryDirectory() as directory:
+        with ChromaTemporaryDirectory() as directory:
             root = Path(directory)
             source, index = root / "chunks.json", root / "index"
             chunks = [dict(chunk_id=str(i), section="Example", printed_page=1, pdf_page=1,
@@ -209,7 +241,7 @@ class IntegrationTests(unittest.TestCase):
             with patch("scripts.build_index.load_model", return_value=FakeModel()), \
                  patch("src.retriever.load_model", return_value=FakeModel()):
                 build_index(source, index, "test-model")
-                retriever = HybridRetriever(index, json.loads((index / "manifest.json").read_text()))
+                retriever = HybridRetriever(index, json.loads((index / "manifest.json").read_text(encoding="utf-8")))
                 scores = retriever.bm25.get_scores(["zx101"])
                 self.assertGreater(scores[0], scores[1])
 

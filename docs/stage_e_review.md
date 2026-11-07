@@ -4,7 +4,7 @@
 
 **Prepared by:** Codex
 
-**Status:** Evaluation completed on 2026-11-07. The project user approved the questions and scoring, reviewed the two reported answer issues, and accepted both as sufficient to close Stage E. The recorded claim-support results and limitations are unchanged. Independent teammate review of interfaces and results remains pending; no teammate sign-off or release-readiness decision is claimed.
+**Status:** Evaluation completed on 2026-11-07. The project user approved the questions and scoring, reviewed the two reported answer issues, and accepted both as sufficient to close Stage E. The recorded claim-support results and limitations are unchanged. The project user reported completing the independent teammate review on 2026-11-07. The recorded limitations remain; no separate release-readiness decision is claimed.
 
 ## Sources and question set
 
@@ -12,7 +12,7 @@ The local PDF SHA-256 is `4fb771304c1d1ae17f2e2d1187b8878d2e0942966959eda1b3bfbb
 
 The local, Git-ignored files `data/stage_e_questions.md` and `data/stage_e_questions.json` contain 30 questions approved by the project user: 8 direct, 8 conditional, 5 multi-section, 4 follow-ups and 5 unambiguous unsupported questions. The JSON SHA-256 at preparation is `476790c7892f9d3b0f820823525f7ac0b7583847c61fd81dcadec9978f639aca`. The four follow-ups use fixed, source-backed preceding turns; a separate UI check is needed to exercise organically generated history. The questions include distinct class absence, deferment and permanent withdrawal cases. No deliberate ambiguity cases are included, as requested by the user.
 
-The question draft records expected evidence, acceptable chunk IDs and both page numbers. Codex reviewed the expected rules against the chunk text and the Stage A and B visual source-review records. In addition, every word of each of the 12 distinct cited chunk texts was found in order on its specified PDF text-layer page. That automated text comparison does not verify table relationships, claim completeness or whether the selected acceptable IDs are exhaustive. Contact-table relationships rely on the earlier visual reviews. The user approved the questions and scoring and directed the benchmark to proceed. Independent teammate review of questions, mappings and results remains outstanding. Broader table-coverage limitations continue to apply.
+The question draft records expected evidence, acceptable chunk IDs and both page numbers. Codex reviewed the expected rules against the chunk text and the Stage A and B visual source-review records. In addition, every word of each of the 12 distinct cited chunk texts was found in order on its specified PDF text-layer page. That automated text comparison does not verify table relationships, claim completeness or whether the selected acceptable IDs are exhaustive. Contact-table relationships rely on the earlier visual reviews. The user approved the questions and scoring and directed the benchmark to proceed. The project user subsequently reported completing the independent teammate review; no separate review notes were supplied. Broader table-coverage limitations continue to apply.
 
 The proposed Recall@5 is the mean, over answerable questions, of the fraction of required evidence items represented by an acceptable top-five chunk. Unsupported cases have no recall denominator and are assessed separately for appropriate abstention. A correct answer contains all requested facts and material qualifications without incorrect claims; assess each factual claim against its cited passages. Record infrastructure errors separately and report attempted denominators. The project user agreed these rules; no separate teammate agreement is claimed.
 
@@ -51,10 +51,10 @@ End-to-end answer-service latency included model calls and network time, not bro
 
 Candidate demo cases, selected only after this evaluation, are D01 (direct lookup), C04 (programme withdrawal) and U01 (unsupported request). These are candidates, not a release approval: verify the live responses immediately before use and do not demonstrate an unsafe answer as a reliable result.
 
-Obtain at least one teammate's independent review of the interfaces and results and record that review, issue owners and dispositions. Follow the team’s review and merge process, including an explicit decision on the recorded grounding limitations. Do not count Codex as a teammate. No release-readiness claim is made.
+The project user reported completing the independent teammate review on 2026-11-07. The issues, owners and dispositions documented above remain in effect. Follow the team’s review and merge process. No release-readiness claim is made.
 
 The Stage A review records that the project user confirmed redistribution of the handbook and handbook-derived project files. This is the user's confirmation, not an independent licence determination or approval for a particular publication venue. The question set, detailed results and local source snapshots remain ignored and local as requested; do not include `.env`, the PDF, environments, indexes or those evaluation files in changes.
 
 ## User disposition of C07 and M04
 
-After reviewing the final retest answers, the project user stated that both the C07 issue and M04 omissions are acceptable and directed that Stage E be committed. This records the user’s acceptance; the original claim-support assessments and reported scores above are preserved. It is not a teammate review or a claim that the omissions have been corrected.
+After reviewing the final retest answers, the project user stated that both the C07 issue and M04 omissions are acceptable and directed that Stage E be committed. This records the user’s acceptance; the original claim-support assessments and reported scores above are preserved. This acceptance predates the subsequently reported independent review and does not claim that the omissions have been corrected.

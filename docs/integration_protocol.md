@@ -1,6 +1,6 @@
 # Integration protocol — PolyU regulations assistant
 
-**Status:** Stages A–D have passed their integration gates with recorded limitations; Stage E evaluation is complete with grounding limitations accepted by the project user; teammate review remains pending. See [Stage E review](stage_e_review.md).
+**Status:** Stages A–D have passed their integration gates with recorded limitations; Stage E evaluation is complete with grounding limitations accepted by the project user; the project user reports that independent teammate review is complete. See [Stage E review](stage_e_review.md).
 
 **Working branch:** `codex/integration`, in the `GP-integration` worktree.
 **Baseline:** merge commit `6d3ec6a`, incorporating the four member branches and retrieval commit `ae5892f`. This branch was local at the time of writing. Keep `main` stable and record subsequent integration commits and reviews.
@@ -106,7 +106,7 @@ On 2026-11-07, a dedicated Python 3.12.13 environment was created at `GP-integra
 2. Record per-question retrieved IDs/ranks, evidence-item Recall@5 under the agreed definition, answer correctness, claim-by-claim citation support, correct abstention or clarification, latency and notes. Inspect numerical conditions and tables against the PDF. Report category results, failures, denominator and limitations; distinguish the plan's targets (≥90% Recall@5, ≥90% answer correctness, and an aim of 100% grounded citations and appropriate abstention) from observed results.
 3. Fix and retest failures, rerunning affected automated and manual cases. Record the code commit, data and PDF hashes, embedding model/revision, index manifest, LLM model, dependency versions, environment, date and reviewer with results. Do not treat a successful API call or citation ID validation as proof of correctness.
 4. From a clean environment, follow the updated setup instructions and rerun the full tests, the handbook-dependent checks, and representative end-to-end UI scenarios. Record skipped tests and reasons. Verify no keys, local indexes, environments or unauthorized PDF are included in changes; separately review redistribution permission for the already tracked handbook-derived data.
-5. Obtain at least one teammate's review of interfaces and results, record open issues and ownership, and select 2–3 demo cases only after evaluation. Follow the team's review and merge process; do not claim release readiness while critical gates remain unresolved.
+5. Record teammate review of interfaces and results, open issues and ownership, and select 2–3 demo cases only after evaluation. The project user reported the independent review complete on 2026-11-07; see the Stage E review. Follow the team's review and merge process; do not claim release readiness while critical gates remain unresolved.
 
 **Completion gate:** The team can reproduce the validated data-to-retrieval-to-answer-to-UI flow; benchmark results and known limitations are documented; mock data is absent from the normal user-facing path; dependency setup and failure handling are verified; and outstanding permissions and review decisions are recorded.
 

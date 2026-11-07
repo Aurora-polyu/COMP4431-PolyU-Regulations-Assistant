@@ -129,6 +129,7 @@ Status rules:
 - [x] Member 2 Stage 1 contract reviewed; call signature and fields accepted.
 - [x] Integration issues and proposed changes recorded.
 - [x] Answer-service contract, statuses and citation rules documented.
-- [ ] Member 2 changes in `src/contracts.py` agreed.
+- [ ] Member 2 changes in `src/contracts.py` agreed. Deferred by Member 2 to the final merge; the answer service does not depend on it, because retrieval failures are caught as `RuntimeError` and no retrieval type is imported at module load.
 - [ ] Team confirms the DeepSeek model identifier.
-- [ ] Answer service implemented against the mock and reviewed.
+- [x] Answer service implemented against the mock: `src/conversation.py`, `src/citations.py`, `src/llm_client.py`, 20 unit tests passing.
+- [ ] Independent review of the implementation.

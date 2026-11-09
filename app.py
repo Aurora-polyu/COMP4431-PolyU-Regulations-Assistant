@@ -1,6 +1,7 @@
 """English-language Streamlit interface for the handbook answer service."""
 
 import re
+from pathlib import Path
 
 import streamlit as st
 
@@ -16,68 +17,8 @@ st.set_page_config(
 TITLE = "PolyU Academic Regulations Assistant"
 MOTTO = "To learn and to apply, for the benefit of mankind."
 
-st.markdown(
-    """
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@600&display=swap');
-    :root { --red: #9E2435; --red-deep: #7C1D2A; --ink: #2B2B2D; }
-    html, body, [data-testid="stAppViewContainer"] { font-family: Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    [data-testid="stAppViewContainer"], [data-testid="stHeader"] { background: #FFFFFF; }
-    [data-testid="stMainBlockContainer"] { max-width: 880px; padding-top: 32px; padding-bottom: 32px; }
-    [data-testid="stSidebar"] { background: #F7F5F4; min-width: 320px; max-width: 320px; transform: none !important; margin-left: 0 !important; visibility: visible !important; }
-    [data-testid="stSidebarHeader"], [data-testid="stExpandSidebarButton"], [data-testid="collapsedControl"] { display: none !important; }
-    [data-testid="stSidebarContent"] { padding: 24px; display: flex; flex-direction: column; }
-    [data-testid="stSidebarUserContent"] { flex: 1; padding-bottom: 0; }
-    [data-testid="stSidebarUserContent"] > div { height: 100%; }
-    [data-testid="stSidebarUserContent"] > div > [data-testid="stVerticalBlock"] { min-height: 100%; }
-    [data-testid="stSidebarUserContent"] [data-testid="stLayoutWrapper"]:has(> .st-key-handbook_footer) { margin-top: auto; }
-    .st-key-sidebar_picture [data-testid="stFullScreenFrame"] { display: flex; justify-content: center; }
-    .st-key-sidebar_picture img { display: block; width: auto !important; max-width: 100%; max-height: 300px; height: auto; margin: 0 auto; }
-    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: 16px; }
-    [data-testid="stSidebar"] [data-testid="stMarkdown"] p { font-size: 14px; line-height: 1.55; }
-    [data-testid="stSidebar"] [data-testid="stMarkdown"] strong { font-size: 15px; }
-    [data-testid="stSidebar"] [data-testid="stButton"] button {
-        width: 100%; margin-top: 16px; color: white; background: var(--red); border: 0; border-radius: 8px;
-    }
-    [data-testid="stSidebar"] [data-testid="stButton"] button:hover { background: var(--red-deep); color: white; }
-    .sidebar-title { font-family: "Source Sans 3", sans-serif; font-size: 21px; font-weight: 600; line-height: 1.3; overflow-wrap: break-word; color: var(--ink); }
-    .welcome { margin: 50vh auto 32px; max-width: 700px; text-align: center; font-size: 24px; font-weight: 600; font-style: italic; line-height: 1.4; color: #77777A; }
-    [data-testid="stChatMessage"] { background: transparent; padding: 0; margin: 16px 0; }
-    [data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) { flex-direction: row-reverse; }
-    [data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) [data-testid="stChatMessageContent"] {
-        flex: 0 1 auto; width: fit-content; max-width: 80%; margin: 0; background: #F7F5F4; border-radius: 20px; padding: 8px 16px;
-    }
-    [data-testid="stChatMessage"]:has([aria-label="Chat message from assistant"]) [data-testid="stChatMessageContent"] { min-width: 0; }
-    [data-testid="stChatMessageContent"] p, [data-testid="stChatMessageContent"] li,
-    [data-testid="stChatMessageContent"] pre, [data-testid="stChatInput"] textarea {
-        font-size: 16px; line-height: 1.6; overflow-wrap: anywhere;
-    }
-    [data-testid="stBottomBlockContainer"] { max-width: 880px; margin-left: auto; margin-right: auto; }
-    [data-testid="stChatInput"] { min-height: 56px; border: 1px solid #E7E0DD; border-radius: 16px; }
-    [data-testid="stChatInput"]:focus-within { border-color: var(--red); }
-    [data-testid="stPopover"] button {
-        color: var(--red-deep); border: 1px solid #E7E0DD; border-radius: 8px;
-        justify-content: flex-start !important; text-align: left !important;
-    }
-    [data-testid="stPopover"] button [data-testid="stMarkdownContainer"],
-    [data-testid="stPopover"] button p { text-align: left !important; }
-    @media (max-width: 767px) {
-        [data-testid="stAppScrollToBottomContainer"] { left: 320px !important; width: calc(100% - 320px) !important; }
-    }
-    @media (max-width: 640px) {
-        [data-testid="stSidebar"] { position: relative !important; min-width: 155px; max-width: 155px; width: 155px !important; }
-        [data-testid="stSidebarContent"] { padding: 8px; }
-        [data-testid="stAppScrollToBottomContainer"] { left: 155px !important; width: calc(100% - 155px) !important; }
-        [data-testid="stMainBlockContainer"] { padding-left: 16px; padding-right: 16px; }
-        .sidebar-title { font-size: 20px; }
-        .welcome { font-size: 22px; }
-        [data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) [data-testid="stChatMessageContent"] { max-width: 95%; }
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+STYLESHEET = Path(__file__).resolve().parent / "assets" / "style.css"
+st.markdown(f"<style>{STYLESHEET.read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -87,23 +28,25 @@ def _new_chat():
     st.session_state.messages = []
 
 
-def _safe_error(answer):
-    """Map service failures to fixed guidance without displaying raw details."""
-    text = answer.removeprefix(FIXTURE_WARNING).strip()
-    if text.startswith("MODEL_API_KEY is not set."):
-        return "The model provider API key is not configured. Add it to your local .env file and restart the app."
-    if text.startswith(("Retrieval failed:", "Retrieval is not available:")):
-        return "The handbook search is unavailable. Check the selected index and rebuild it if needed; see the setup guide."
-    if text.startswith(("Model provider returned HTTP", "Could not reach the model provider")):
-        return "The answer service is unavailable. Check your API configuration and connection, then try again."
-    return "The answer service could not complete the request. Please try again and check the setup guide if the problem continues."
+ERROR_MESSAGES = {
+    "no_api_key": "The model provider API key is not configured. Add it to your local .env file and restart the app.",
+    "retrieval": "The handbook search is unavailable. Check the selected index and rebuild it if needed; see the setup guide.",
+    "provider": "The answer service is unavailable. Check your API configuration and connection, then try again.",
+}
+GENERIC_ERROR = "The answer service could not complete the request. Please try again and check the setup guide if the problem continues."
+
+
+def _safe_error(error_code):
+    """Map a service error code to fixed guidance without displaying raw details."""
+    return ERROR_MESSAGES.get(error_code, GENERIC_ERROR)
 
 
 def _display_response(resp):
     """Return the exact text to display and retain in conversation history."""
     status = resp.get("status")
     answer = resp.get("answer") if isinstance(resp.get("answer"), str) else ""
-    fixture = resp.get("evidence_source") == "fixture"
+    # The service prefixes fixture answers with the warning; strip it so it is
+    # added back exactly once, including on safe error messages.
     answer = answer.removeprefix(FIXTURE_WARNING).strip()
     if status == "answered":
         content = answer or "The answer service returned an empty answer. Please try again."
@@ -115,8 +58,10 @@ def _display_response(resp):
     elif status == "insufficient_evidence":
         content = answer or NO_EVIDENCE_ANSWER
     else:
-        content = _safe_error(answer)
-    return f"{FIXTURE_WARNING}\n\n{content}" if fixture else content
+        content = _safe_error(resp.get("error_code"))
+    if resp.get("evidence_source") == "fixture":
+        return f"{FIXTURE_WARNING}\n\n{content}"
+    return content
 
 
 def _remove_citation_markers(content, chunks):
@@ -156,7 +101,7 @@ def render_turn(question):
         if not isinstance(chunks, list):
             chunks = []
     except Exception:
-        content = _safe_error("")
+        content = GENERIC_ERROR
         chunks = []
     message = {"role": "assistant", "content": content, "chunks": chunks}
     st.session_state.messages.append(message)

@@ -108,7 +108,12 @@ def _manifest(index_dir: Path, model_name: str) -> tuple[dict, str]:
             raise ValueError("invalid index generation")
         return manifest, raw
     except (OSError, KeyError, TypeError, ValueError) as exc:
-        raise RetrievalError(f"Index at {index_dir} is missing, stale, or incompatible ({exc}). Rebuild with python scripts/build_index.py --chunks /path/to/intended/chunks.jsonl --index-dir /path/to/intended/index and the original model.") from exc
+        raise RetrievalError(
+            f"Index at {index_dir} is missing, stale, or incompatible ({exc}). "
+            "Rebuild with python scripts/build_index.py "
+            "--chunks /path/to/intended/chunks.jsonl "
+            "--index-dir /path/to/intended/index and the original model."
+        ) from exc
 
 
 class HybridRetriever:
@@ -141,7 +146,10 @@ class HybridRetriever:
             query_tokens = tokenize(query)
             scores = self.bm25.get_scores(query_tokens) if self.bm25 else [0.0] * len(self.ids)
             # Exclude documents with no matching terms, even when their BM25 score is zero.
-            keyword_ids = sorted((i for i, tokens in enumerate(self.tokens) if set(query_tokens) & set(tokens)), key=lambda i: (-scores[i], self.ids[i]))[:count]
+            query_terms = set(query_tokens)
+            matching = [i for i, tokens in enumerate(self.tokens) if query_terms & set(tokens)]
+            ranked = sorted(matching, key=lambda i: (-scores[i], self.ids[i]))
+            keyword_ids = ranked[:count]
             fused = rrf([vector_ids, [self.ids[i] for i in keyword_ids]], min(top_k, len(self.ids)))
             return [self.chunks[chunk_id].copy() for chunk_id in fused]
         except Exception as exc:

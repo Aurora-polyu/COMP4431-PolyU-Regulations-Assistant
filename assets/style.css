@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@600&display=swap');
+:root { --red: #9E2435; --red-deep: #7C1D2A; --ink: #2B2B2D; }
+html, body, [data-testid="stAppViewContainer"] { font-family: Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+[data-testid="stAppViewContainer"], [data-testid="stHeader"] { background: #FFFFFF; }
+[data-testid="stMainBlockContainer"] { max-width: 880px; padding-top: 32px; padding-bottom: 32px; }
+[data-testid="stSidebar"] { background: #F7F5F4; min-width: 320px; max-width: 320px; transform: none !important; margin-left: 0 !important; visibility: visible !important; }
+[data-testid="stSidebarHeader"], [data-testid="stExpandSidebarButton"], [data-testid="collapsedControl"] { display: none !important; }
+[data-testid="stSidebarContent"] { padding: 24px; display: flex; flex-direction: column; }
+[data-testid="stSidebarUserContent"] { flex: 1; padding-bottom: 0; }
+[data-testid="stSidebarUserContent"] > div { height: 100%; }
+[data-testid="stSidebarUserContent"] > div > [data-testid="stVerticalBlock"] { min-height: 100%; }
+[data-testid="stSidebarUserContent"] [data-testid="stLayoutWrapper"]:has(> .st-key-handbook_footer) { margin-top: auto; }
+.st-key-sidebar_picture [data-testid="stFullScreenFrame"] { display: flex; justify-content: center; }
+.st-key-sidebar_picture img { display: block; width: auto !important; max-width: 100%; max-height: 300px; height: auto; margin: 0 auto; }
+[data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: 16px; }
+[data-testid="stSidebar"] [data-testid="stMarkdown"] p { font-size: 14px; line-height: 1.55; }
+[data-testid="stSidebar"] [data-testid="stMarkdown"] strong { font-size: 15px; }
+[data-testid="stSidebar"] [data-testid="stButton"] button {
+    width: 100%; margin-top: 16px; color: white; background: var(--red); border: 0; border-radius: 8px;
+}
+[data-testid="stSidebar"] [data-testid="stButton"] button:hover { background: var(--red-deep); color: white; }
+.sidebar-title { font-family: "Source Sans 3", sans-serif; font-size: 21px; font-weight: 600; line-height: 1.3; overflow-wrap: break-word; color: var(--ink); }
+.welcome { margin: 50vh auto 32px; max-width: 700px; text-align: center; font-size: 24px; font-weight: 600; font-style: italic; line-height: 1.4; color: #77777A; }
+[data-testid="stChatMessage"] { background: transparent; padding: 0; margin: 16px 0; }
+[data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) { flex-direction: row-reverse; }
+[data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) [data-testid="stChatMessageContent"] {
+    flex: 0 1 auto; width: fit-content; max-width: 80%; margin: 0; background: #F7F5F4; border-radius: 20px; padding: 8px 16px;
+}
+[data-testid="stChatMessage"]:has([aria-label="Chat message from assistant"]) [data-testid="stChatMessageContent"] { min-width: 0; }
+[data-testid="stChatMessageContent"] p, [data-testid="stChatMessageContent"] li,
+[data-testid="stChatMessageContent"] pre, [data-testid="stChatInput"] textarea {
+    font-size: 16px; line-height: 1.6; overflow-wrap: anywhere;
+}
+[data-testid="stBottomBlockContainer"] { max-width: 880px; margin-left: auto; margin-right: auto; }
+[data-testid="stChatInput"] { min-height: 56px; border: 1px solid #E7E0DD; border-radius: 16px; }
+[data-testid="stChatInput"]:focus-within { border-color: var(--red); }
+[data-testid="stPopover"] button {
+    color: var(--red-deep); border: 1px solid #E7E0DD; border-radius: 8px;
+    justify-content: flex-start !important; text-align: left !important;
+}
+[data-testid="stPopover"] button [data-testid="stMarkdownContainer"],
+[data-testid="stPopover"] button p { text-align: left !important; }
+@media (max-width: 767px) {
+    [data-testid="stAppScrollToBottomContainer"] { left: 320px !important; width: calc(100% - 320px) !important; }
+}
+@media (max-width: 640px) {
+    [data-testid="stSidebar"] { position: relative !important; min-width: 155px; max-width: 155px; width: 155px !important; }
+    [data-testid="stSidebarContent"] { padding: 8px; }
+    [data-testid="stAppScrollToBottomContainer"] { left: 155px !important; width: calc(100% - 155px) !important; }
+    [data-testid="stMainBlockContainer"] { padding-left: 16px; padding-right: 16px; }
+    .sidebar-title { font-size: 20px; }
+    .welcome { font-size: 22px; }
+    [data-testid="stChatMessage"]:has([aria-label="Chat message from user"]) [data-testid="stChatMessageContent"] { max-width: 95%; }
+}

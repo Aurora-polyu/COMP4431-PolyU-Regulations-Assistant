@@ -144,6 +144,7 @@ class AnswerServiceTests(unittest.TestCase):
         self.assertEqual(result["status"], "error")
         self.assertIn("Retrieval failed", result["answer"])
         self.assertIn("build_index.py", result["answer"])
+        self.assertEqual(result["error_code"], "retrieval")
         self.assertEqual(result["citation_chunk_ids"], [])
         self.assertEqual(llm.calls, [])
 
@@ -216,6 +217,7 @@ class AnswerServiceTests(unittest.TestCase):
         result = answer_question("Can I retake a failed subject?", retrieve=fake_retriever(CHUNKS), llm=llm)
         self.assertEqual(result["status"], "error")
         self.assertNotIn("does not appear to cover", result["answer"])
+        self.assertEqual(result["error_code"], "invalid_output")
 
     def test_invalid_model_status_is_an_error(self):
         for reply in ('{}', '{"status": "needs_clarification"}', '{"status": []}'):
@@ -228,6 +230,7 @@ class AnswerServiceTests(unittest.TestCase):
         result = answer_question("Can I retake a failed subject?", retrieve=fake_retriever(CHUNKS), llm=llm)
         self.assertEqual(result["status"], "error")
         self.assertIn("401", result["answer"])
+        self.assertEqual(result["error_code"], "provider")
 
     def test_follow_up_rewrites_retrieval_query(self):
         history = [

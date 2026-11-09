@@ -85,7 +85,7 @@ def test_fixture_warning_survives_all_statuses(status):
 
 
 def test_safe_error_guidance_and_exceptions_do_not_expose_secrets():
-    with patch("src.conversation.answer_question", return_value=response(status="error", answer="Retrieval failed: secret-token")):
+    with patch("src.conversation.answer_question", return_value=response(status="error", answer="Retrieval failed: secret-token", error_code="retrieval")):
         app = start()
         ask(app, "Question")
         assert "handbook search is unavailable" in contents(app)[1]

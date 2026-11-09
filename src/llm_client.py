@@ -21,6 +21,10 @@ DEFAULT_TIMEOUT = 60
 class LlmError(RuntimeError):
     """The language model is unavailable, misconfigured, or returned an error."""
 
+    def __init__(self, message: str, retryable: bool = False) -> None:
+        super().__init__(message)
+        self.retryable = retryable
+
 
 def load_env_file(path: Path | None = None) -> None:
     """Load KEY=VALUE lines from .env without overriding existing variables."""
@@ -86,7 +90,7 @@ class ModelClient:
                 return self._content(body)
             except LlmError as exc:
                 last_error = exc
-                if not getattr(exc, "retryable", False):
+                if not exc.retryable:
                     raise
         raise LlmError(str(last_error))
 
@@ -105,17 +109,12 @@ class ModelClient:
                 return json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             detail = self._error_detail(exc)
-            error = LlmError(f"Model provider returned HTTP {exc.code}: {detail}")
-            error.retryable = exc.code >= 500 or exc.code == 429
-            raise error from exc
+            retryable = exc.code >= 500 or exc.code == 429
+            raise LlmError(f"Model provider returned HTTP {exc.code}: {detail}", retryable=retryable) from exc
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
-            error = LlmError("Model provider returned a response that is not valid JSON")
-            error.retryable = True
-            raise error from exc
+            raise LlmError("Model provider returned a response that is not valid JSON", retryable=True) from exc
         except (urllib.error.URLError, TimeoutError, OSError, http.client.HTTPException) as exc:
-            error = LlmError(f"Could not reach the model provider at {self.base_url}: {exc}")
-            error.retryable = True
-            raise error from exc
+            raise LlmError(f"Could not reach the model provider at {self.base_url}: {exc}", retryable=True) from exc
 
     @staticmethod
     def _error_detail(exc: urllib.error.HTTPError) -> str:
@@ -132,7 +131,5 @@ class ModelClient:
         except (KeyError, IndexError, TypeError) as exc:
             raise LlmError("Model provider response did not contain an assistant message") from exc
         if not isinstance(content, str) or not content.strip():
-            error = LlmError("Model provider returned an empty answer")
-            error.retryable = True
-            raise error
+            raise LlmError("Model provider returned an empty answer", retryable=True)
         return content

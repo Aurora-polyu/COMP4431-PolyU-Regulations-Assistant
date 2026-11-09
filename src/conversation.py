@@ -73,6 +73,7 @@ def _response(
     clarification_question: str | None = None,
     status: str,
     evidence_source: str = "handbook",
+    error_code: str | None = None,
 ) -> dict:
     return {
         "answer": answer,
@@ -81,6 +82,7 @@ def _response(
         "clarification_question": clarification_question,
         "status": status,
         "evidence_source": evidence_source,
+        "error_code": error_code,
     }
 
 
@@ -192,6 +194,7 @@ def answer_question(
         except Exception as exc:
             return _response(
                 status="error",
+                error_code="retrieval",
                 answer=f"Retrieval is not available: {exc}. Install the retrieval dependencies and build the index.",
             )
 
@@ -199,7 +202,7 @@ def answer_question(
         try:
             llm = ModelClient()
         except LlmError as exc:
-            return _response(status="error", answer=str(exc))
+            return _response(status="error", error_code="no_api_key", answer=str(exc))
 
     query = build_retrieval_query(question, history, llm)
     try:
@@ -207,6 +210,7 @@ def answer_question(
     except Exception as exc:
         return _response(
             status="error",
+            error_code="retrieval",
             answer=(
                 f"Retrieval failed: {exc}. Rebuild the index with "
                 "`python scripts/build_index.py` and try again."
@@ -221,11 +225,17 @@ def answer_question(
     try:
         parsed = _complete_json(llm, messages)
     except LlmError as exc:
-        return _response(status="error", answer=_mark_fixture(str(exc), source), evidence_source=source)
+        return _response(
+            status="error",
+            error_code="provider",
+            answer=_mark_fixture(str(exc), source),
+            evidence_source=source,
+        )
 
     if parsed is None:
         return _response(
             status="error",
+            error_code="invalid_output",
             answer=_mark_fixture((
                 "The language model did not return a usable answer. "
                 "Please try again; if this continues, check the API configuration."
@@ -247,6 +257,7 @@ def answer_question(
     ):
         return _response(
             status="error",
+            error_code="invalid_output",
             answer=_mark_fixture("The language model returned an invalid response. Please try again.", source),
             evidence_source=source,
         )

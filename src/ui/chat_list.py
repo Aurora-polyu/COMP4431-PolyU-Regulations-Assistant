@@ -65,7 +65,7 @@ def render_chat_list():
                     _open_conversation(conversation_id)
                     st.rerun()
             with menu_column:
-                with st.popover("…", key=f"chat_menu_{conversation_id}"):
+                with st.popover(f"Options for {title}", key=f"chat_menu_{conversation_id}"):
                     new_title = st.text_input(
                         "New title", value=title, key=f"rename_input_{conversation_id}"
                     )

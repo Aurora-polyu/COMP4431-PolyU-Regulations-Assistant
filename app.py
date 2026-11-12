@@ -41,17 +41,15 @@ def _new_chat():
     st.session_state.chat_id = None
     st.session_state.temporary = False
     st.session_state.view = "Chat"
-
-
-def _temporary_chat():
-    st.session_state.messages = []
-    st.session_state.chat_id = None
-    st.session_state.temporary = True
-    st.session_state.view = "Chat"
+    st.session_state.pop("suggestion_domain", None)
 
 
 def _delete_all():
-    user_data.delete_all()
+    try:
+        user_data.delete_all()
+    except Exception:
+        st.session_state.delete_all_error = True
+        return
     for message in st.session_state.messages:
         message_id = message.get("id")
         if message_id:
@@ -61,7 +59,17 @@ def _delete_all():
     st.session_state.temporary = False
     st.session_state.view = "Chat"
     st.session_state.search = ""
-    st.session_state.confirm_delete_all = False
+    st.session_state.delete_all_success = True
+
+
+@st.dialog("Your data has been deleted", width="small")
+def _show_delete_confirmation():
+    with st.container(key="delete_success"):
+        st.markdown("<div class='save-success-icon' aria-hidden='true'>✓</div>", unsafe_allow_html=True)
+        st.markdown("### All clear")
+        st.write("Your chats, saved answers and feedback have been deleted.")
+        if st.button("Continue", key="continue_after_delete", type="primary", use_container_width=True):
+            st.rerun()
 
 
 def _show_collection():
@@ -153,37 +161,41 @@ def render_turn(question):
 
 
 with st.sidebar:
-    logo, name = st.columns([1, 3], vertical_alignment="center")
-    with logo:
-        st.image("assets/polyu_logo.svg", width=55)
-    with name:
-        st.markdown(f"<div class='sidebar-title'>{TITLE}</div>", unsafe_allow_html=True)
+    with st.container(key="sidebar_brand"):
+        logo, name = st.columns([1, 3], vertical_alignment="center")
+        with logo:
+            st.image("assets/polyu_logo.svg", width=55)
+        with name:
+            st.markdown(f"<div class='sidebar-title'>{TITLE}</div>", unsafe_allow_html=True)
     with st.container(key="new_chat_button"):
         st.button("New chat", key="new_chat", on_click=_new_chat, use_container_width=True)
-    st.button("Temporary chat", key="temporary_chat", on_click=_temporary_chat, use_container_width=True)
-    st.text_input("Search chats", key="search")
-    st.button("Collection", key="show_collection", on_click=_show_collection, use_container_width=True)
-    st.markdown("**Chats**")
-    render_chat_list()
-    with st.popover("Settings"):
-        st.checkbox(
-            "I understand this permanently deletes all chats, saved answers and feedback.",
-            key="confirm_delete_all",
-        )
-        st.button(
-            "Delete all my data",
-            key="delete_all",
-            on_click=_delete_all,
-            disabled=not st.session_state.confirm_delete_all,
-            use_container_width=True,
-        )
-    st.markdown("**About this assistant**")
-    st.markdown("Ask questions about academic regulations using the student handbook.")
-    with st.container(key="sidebar_picture"):
-        st.image("assets/sidebar-picture.jpeg", width="stretch")
-    with st.container(key="handbook_footer"):
-        st.markdown("**Handbook**  \n2026/27 Student Handbook for Taught Programmes")
-        st.markdown("Check the official handbook or contact your department for decisions about your situation.")
+    with st.expander("Search chats"):
+        st.text_input("Search chat titles", key="search", label_visibility="collapsed", placeholder="Search chat titles")
+    st.button("My collection", key="show_collection", on_click=_show_collection, use_container_width=True)
+    st.markdown("**Recent chats**")
+    with st.container(height=240, border=False, key="recent_chats"):
+        render_chat_list()
+    with st.container(key="sidebar_footer"):
+        with st.expander("About & handbook"):
+            st.markdown(
+                "1. Ask a question about the handbook.\n"
+                "2. Open the sources under the answer to read the passages.\n"
+                "3. Rate, save or report an answer."
+            )
+            st.markdown("**Handbook**  \n2026/27 Student Handbook for Taught Programmes")
+        with st.popover("Delete all my data", use_container_width=True):
+            st.warning("This permanently deletes all chats, saved answers and feedback. Continue?")
+            st.button(
+                "Confirm delete",
+                key="delete_all",
+                on_click=_delete_all,
+                use_container_width=True,
+            )
+        if st.session_state.pop("delete_all_error", False):
+            st.error("Could not delete your data. Please try again.")
+
+if st.session_state.pop("delete_all_success", False):
+    _show_delete_confirmation()
 
 
 if st.session_state.view == "Collection":
@@ -191,11 +203,16 @@ if st.session_state.view == "Collection":
 else:
     if st.session_state.temporary:
         st.caption("Temporary chat: not saved locally. Save and feedback are unavailable; questions are sent to the model provider.")
-    question = st.chat_input("Ask about PolyU academic regulations...")
+    with st.bottom:
+        question = st.chat_input("Ask about PolyU academic regulations...")
+        with st.container(key="handbook_guidance"):
+            st.caption("Check the official handbook or contact your department for decisions about your situation.")
     if not st.session_state.messages and not question:
-        st.markdown(f"<div class='welcome'>{MOTTO}</div>", unsafe_allow_html=True)
+        welcome = st.empty()
+        welcome.markdown(f"<div class='welcome'>{MOTTO}</div>", unsafe_allow_html=True)
         suggestion = render_suggestions()
         if suggestion:
+            welcome.empty()
             question = suggestion
 
     for message in st.session_state.messages:

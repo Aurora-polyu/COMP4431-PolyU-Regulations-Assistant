@@ -32,3 +32,9 @@ SUGGESTED_QUESTIONS: dict[str, list[str]] = {
         "Where is the Student Computer Centre?",
     ],
 }
+
+POPULAR_QUESTIONS = [
+    SUGGESTED_QUESTIONS["Pause or leave study"][0],
+    SUGGESTED_QUESTIONS["Subjects and retakes"][0],
+    SUGGESTED_QUESTIONS["Exams and results"][0],
+]

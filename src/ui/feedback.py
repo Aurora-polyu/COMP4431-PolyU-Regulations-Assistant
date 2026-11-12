@@ -55,23 +55,31 @@ def _widget_default(message):
     return 1 if stored == 1 else (0 if stored == -1 else None)
 
 
+def render_rating(message):
+    if _eligible(message, RATE_STATUSES):
+        default = _widget_default(message)
+        if default is None and message.get("status") == "answered":
+            default = 0
+        st.feedback("thumbs", key=f"rate_{message['id']}", default=default,
+                    on_change=_on_rating_changed, args=(message,))
+
+
+def render_report(message):
+    if _eligible(message, REPORT_STATUSES):
+        with st.popover("Report", key=f"report_{message['id']}"):
+            st.selectbox("Reason", REPORT_REASONS, key=f"reason_report_{message['id']}")
+            st.text_area("Comment", max_chars=500, key=f"comment_report_{message['id']}")
+            st.button("Submit", key=f"submit_report_{message['id']}",
+                      on_click=_submit_report, args=(message,))
+
+
 def render_rating_and_report(message):
+    """Render both controls for callers that use the feedback hook directly."""
     if not _eligible(message, RATE_STATUSES) and not _eligible(message, REPORT_STATUSES):
         return
     with st.container(key=f"feedback_{message['id']}"):
-        columns = st.columns([0.35, 0.65], vertical_alignment="bottom")
-        with columns[0]:
-            if _eligible(message, RATE_STATUSES):
-                default = _widget_default(message)
-                if default is None and message.get("status") == "answered":
-                    default = 0  # hold the current selection on answered replies
-                st.feedback("thumbs", key=f"rate_{message['id']}",
-                            default=default,
-                            on_change=_on_rating_changed, args=(message,))
-        with columns[1]:
-            if _eligible(message, REPORT_STATUSES):
-                with st.popover("Report", key=f"report_{message['id']}"):
-                    st.selectbox("Reason", REPORT_REASONS, key=f"reason_report_{message['id']}")
-                    st.text_area("Comment", max_chars=500, key=f"comment_report_{message['id']}")
-                    st.button("Submit", key=f"submit_report_{message['id']}",
-                              on_click=_submit_report, args=(message,))
+        rating, report = st.columns(2, vertical_alignment="center")
+        with rating:
+            render_rating(message)
+        with report:
+            render_report(message)

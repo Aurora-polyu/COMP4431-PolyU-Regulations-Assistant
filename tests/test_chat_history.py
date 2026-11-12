@@ -132,7 +132,9 @@ def test_search_filters_chat_list(db_path):
 def test_temporary_chat_writes_nothing(db_path):
     with patch("src.conversation.answer_question", return_value=response()):
         app = start()
-        button(app, "Temporary chat").click().run()
+        assert not any(b.label == "Temporary chat" for b in app.button)
+        app.session_state["temporary"] = True
+        app.run()
         assert app.session_state["temporary"] is True
         assert any("Temporary chat: not saved" in c.value for c in app.caption)
         ask(app, "Private question")
@@ -151,15 +153,27 @@ def test_delete_all_clears_storage_and_session(db_path):
         app = start()
         ask(app, "Question")
         assert user_data.list_conversations(db_path=db_path)
-        by_key(app, "checkbox", "confirm_delete_all").check().run()
+        assert any("permanently deletes all chats" in warning.value for warning in app.warning)
+        assert user_data.list_conversations(db_path=db_path)
         by_key(app, "button", "delete_all").click().run()
         assert user_data.list_conversations(db_path=db_path) == []
         assert user_data.list_saved(db_path=db_path) == []
         assert user_data.list_feedback(db_path=db_path) == []
         assert app.session_state["messages"] == []
         assert app.session_state["chat_id"] is None
-        assert by_key(app, "checkbox", "confirm_delete_all").value is False
+        assert button(app, "Continue")
         assert not app.exception
+
+
+def test_delete_all_failure_does_not_show_success(db_path):
+    with patch("src.conversation.answer_question", return_value=response()):
+        app = start()
+        ask(app, "Question")
+        with patch("src.user_data.delete_all", side_effect=OSError("disk error")):
+            by_key(app, "button", "delete_all").click().run()
+        assert user_data.list_conversations(db_path=db_path)
+        assert any("Could not delete" in item.value for item in app.error)
+        assert not [b for b in app.button if b.label == "Continue"]
 
 
 def _marker(message):
@@ -187,7 +201,8 @@ def test_action_bar_in_temporary_chat(db_path):
     with patch("src.conversation.answer_question", return_value=response()), \
             patch("src.ui.actions.render_save_button", _marker):
         app = start()
-        button(app, "Temporary chat").click().run()
+        app.session_state["temporary"] = True
+        app.run()
         ask(app, "Private question")
         assert _bars(app) == []
 

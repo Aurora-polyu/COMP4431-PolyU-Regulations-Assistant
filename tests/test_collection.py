@@ -91,6 +91,14 @@ def test_collection_to_markdown_uses_placeholder_for_missing_note_and_sources():
     assert "Saved answers: 1" in result
 
 
+def test_single_answer_export_contains_only_selected_answer():
+    result = collection_to_markdown([ITEM_ONE])
+    assert "Can I retake a failed subject?" in result
+    assert "Check the 21-credit rule." in result
+    assert "Complete passage." in result
+    assert "When is the add/drop period?" not in result
+
+
 def test_collection_to_markdown_empty_is_deterministic():
     first = collection_to_markdown([])
     second = collection_to_markdown([])
@@ -113,6 +121,10 @@ def test_save_persists_stripped_answer_and_source(tmp_path, monkeypatch):
 
         assert len(buttons(app, "Save")) == 1
         buttons(app, "Save")[0].click().run()
+        assert buttons(app, "View my collection")
+        assert buttons(app, "Continue chatting")
+        buttons(app, "Continue chatting")[0].click().run()
+        assert buttons(app, "Saved")[0].disabled
 
     saved = user_data.list_saved()
     assert len(saved) == 1
@@ -167,9 +179,9 @@ def test_collection_view_shows_item_note_and_search(tmp_path, monkeypatch):
 
     saved_id = user_data.list_saved()[0]["id"]
 
-    buttons(app, "Collection")[0].click().run()
+    buttons(app, "My collection")[0].click().run()
     assert app.title[0].value == "My Collection"
-    assert markdown_contains(app, "Can I retake?")
+    assert any("Can I retake?" in item.label for item in app.get("expander"))
     assert markdown_contains(app, "Retake is allowed.")
     assert any("printed p. 33" in p.proto.popover.label for p in app.get("popover"))
 
@@ -179,7 +191,8 @@ def test_collection_view_shows_item_note_and_search(tmp_path, monkeypatch):
 
     search = [item for item in app.text_input if item.key == "collection_search"][0]
     search.set_value("retake").run()
-    assert markdown_contains(app, "Can I retake?")
+    assert any("Can I retake?" in item.label for item in app.get("expander"))
+    assert app.get("download_button")[0].label == "Download as Markdown"
 
     search.set_value("nothing matches").run()
     assert any("No saved answers match" in item.value for item in app.info)
@@ -192,7 +205,7 @@ def test_collection_view_remove_deletes_the_row(tmp_path, monkeypatch):
                           "answered", "handbook", [CHUNK])
 
     app = start()
-    buttons(app, "Collection")[0].click().run()
+    buttons(app, "My collection")[0].click().run()
     assert buttons(app, "Remove")
 
     buttons(app, "Remove")[0].click().run()
@@ -208,18 +221,23 @@ def test_collection_survives_an_app_restart(tmp_path, monkeypatch):
         buttons(first, "Save")[0].click().run()
 
     second = start()
-    buttons(second, "Collection")[0].click().run()
-    assert markdown_contains(second, "Can I retake?")
+    buttons(second, "My collection")[0].click().run()
+    assert any("Can I retake?" in item.label for item in second.get("expander"))
     assert markdown_contains(second, "Retake is allowed.")
     assert not second.exception
 
 
-def test_download_button_appears_only_with_items(tmp_path, monkeypatch):
+def test_each_saved_answer_has_its_own_download(tmp_path, monkeypatch):
     monkeypatch.setenv("USER_DATA_DB", str(tmp_path / "user_data.sqlite"))
     app = start()
-    buttons(app, "Collection")[0].click().run()
+    buttons(app, "My collection")[0].click().run()
     assert not app.get("download_button")
 
     user_data.save_answer("m1", "Question", "Answer", "answered", "handbook", [CHUNK])
+    user_data.save_answer("m2", "Another question", "Another answer", "answered", "handbook", [])
     app.run()
-    assert app.get("download_button")
+    downloads = app.get("download_button")
+    assert len(downloads) == 2
+    assert all(button.label == "Download as Markdown" for button in downloads)
+    assert len({button.key for button in downloads}) == 2
+    assert not any("Download all" in button.label for button in downloads)

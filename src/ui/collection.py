@@ -17,8 +17,7 @@ NO_MATCH = "No saved answers match your search."
 
 
 def _save_message(message):
-    """Widget callback: runs before the rerun, so it works even though the
-    action bar is only rendered for the answer that was just produced."""
+    """Save an answered message to the collection."""
     message_id = message.get("id")
     if not message_id:
         return
@@ -33,7 +32,24 @@ def _save_message(message):
         evidence_source=message.get("evidence_source"),
         sources=chunks,
     )
-    st.toast("Saved to Collection")
+
+
+@st.dialog("Saved to your collection", width="small")
+def _show_saved_confirmation():
+    with st.container(key="save_success"):
+        st.markdown(
+            "<div class='save-success-icon' aria-hidden='true'>"
+            "<svg width='30' height='36' viewBox='0 0 24 28' fill='none' xmlns='http://www.w3.org/2000/svg'>"
+            "<path d='M5 3.5A2.5 2.5 0 0 1 7.5 1h9A2.5 2.5 0 0 1 19 3.5V26l-7-4.5L5 26V3.5Z' fill='#9E2435'/>"
+            "</svg></div>", unsafe_allow_html=True,
+        )
+        st.markdown("### Ready whenever you need it")
+        st.write("Your answer and its sources are saved in My Collection.")
+        if st.button("View my collection", key="view_saved_collection", type="primary", use_container_width=True):
+            st.session_state.view = "Collection"
+            st.rerun()
+        if st.button("Continue chatting", key="continue_after_save", use_container_width=True):
+            st.rerun()
 
 
 def render_save_button(message):
@@ -45,13 +61,13 @@ def render_save_button(message):
         return
 
     saved_id = user_data.is_saved(message_id)
-    st.button(
+    if st.button(
         "Saved" if saved_id else "Save",
         key=f"save_{message_id}",
         disabled=bool(saved_id),
-        on_click=_save_message,
-        args=(message,),
-    )
+    ):
+        _save_message(message)
+        _show_saved_confirmation()
 
 
 def _source_title(chunk):
@@ -113,41 +129,56 @@ def _remove_saved(saved_id):
 
 def _render_item(item):
     saved_id = item["id"]
-    with st.container(border=True):
-        st.markdown(f"**{item.get('question') or '(no question)'}**")
-        saved_at = item.get("created_at") or ""
-        st.caption(f"Saved {saved_at} · Handbook {EDITION}")
+    saved_at = item.get("created_at") or ""
+    question = item.get("question") or "(no question)"
+    with st.container(key=f"collection_item_{saved_id}"):
+        details, actions = st.columns([10, 1], vertical_alignment="top")
+        with details:
+            with st.expander(f"{question}  ·  Saved {saved_at}"):
+                st.caption(f"Handbook {EDITION}")
 
-        answer = (item.get("answer") or "").strip()
-        if answer:
-            st.markdown(answer)
+                answer = (item.get("answer") or "").strip()
+                if answer:
+                    st.markdown(answer)
 
-        sources = item.get("sources") or []
-        if sources:
-            render_source_popovers(sources)
+                sources = item.get("sources") or []
+                if sources:
+                    render_source_popovers(sources)
 
-        note = st.text_area(
-            "Note",
-            value=item.get("note") or "",
-            key=f"note_{saved_id}",
-            placeholder="Add a note for yourself",
-        )
-        if note != (item.get("note") or ""):
-            user_data.update_note(saved_id, note)
-            st.toast("Note updated")
+                note = st.text_area(
+                    "Note",
+                    value=item.get("note") or "",
+                    key=f"note_{saved_id}",
+                    placeholder="Add a note for yourself",
+                )
+                if note != (item.get("note") or ""):
+                    user_data.update_note(saved_id, note)
+                    item = {**item, "note": note}
+                    st.toast("Note updated")
 
-        st.button(
-            "Remove",
-            key=f"remove_{saved_id}",
-            on_click=_remove_saved,
-            args=(saved_id,),
-        )
+        with actions:
+            with st.popover(f"Options for {question}", key=f"saved_menu_{saved_id}"):
+                st.download_button(
+                    "Download as Markdown",
+                    data=collection_to_markdown([item]),
+                    file_name=f"saved-answer-{saved_id}.md",
+                    mime="text/markdown",
+                    key=f"download_saved_{saved_id}",
+                    use_container_width=True,
+                )
+                st.button(
+                    "Remove",
+                    key=f"remove_{saved_id}",
+                    on_click=_remove_saved,
+                    args=(saved_id,),
+                    use_container_width=True,
+                )
 
 
 def render_collection_view():
     """Full Collection view: search, download, saved items, notes and removal."""
     st.title("My Collection")
-    st.markdown(f"> {BANNER}")
+    st.caption(BANNER)
 
     query = st.text_input(
         "Search saved answers",
@@ -163,13 +194,6 @@ def render_collection_view():
             st.info(EMPTY_STATE)
         return
 
-    st.download_button(
-        "Download all as Markdown",
-        data=collection_to_markdown(items),
-        file_name="collection.md",
-        mime="text/markdown",
-        key="download_collection",
-    )
-
-    for item in items:
-        _render_item(item)
+    with st.container(key="collection_cards"):
+        for item in items:
+            _render_item(item)

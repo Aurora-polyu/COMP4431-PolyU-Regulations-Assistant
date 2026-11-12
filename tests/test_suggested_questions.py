@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from streamlit.testing.v1 import AppTest
 
-from src.suggested_questions import SUGGESTED_QUESTIONS
+from src.suggested_questions import POPULAR_QUESTIONS, SUGGESTED_QUESTIONS
 
 
 def test_each_domain_has_enough_unique_questions():
@@ -28,11 +28,10 @@ def _script():
 
 def test_renders_and_returns_clicked_question():
     app = AppTest.from_function(_script, default_timeout=10).run()
-    first = list(SUGGESTED_QUESTIONS)[0]
     assert app.session_state.clicked is None
-    assert [b.label for b in app.button] == SUGGESTED_QUESTIONS[first]
+    assert [b.label for b in app.button] == POPULAR_QUESTIONS
     app.button[1].click().run()
-    assert app.session_state.clicked == SUGGESTED_QUESTIONS[first][1]
+    assert app.session_state.clicked == POPULAR_QUESTIONS[1]
     assert not app.exception
 
 
@@ -52,6 +51,14 @@ def test_domain_chip_switches_questions():
     app = _start_app()
     app.get("button_group")[0].set_value(domains[2]).run()
     assert [b.label for b in app.button if b.key and b.key.startswith("suggestion_")] == SUGGESTED_QUESTIONS[domains[2]]
+
+
+def test_new_chat_resets_topic_to_popular():
+    app = _start_app()
+    app.get("button_group")[0].set_value("Campus services").run()
+    next(b for b in app.button if b.label == "New chat").click().run()
+    assert app.get("button_group")[0].value == "Popular"
+    assert [b.label for b in app.button if b.key and b.key.startswith("suggestion_")] == POPULAR_QUESTIONS
 
 
 def test_clicking_suggestion_asks_it_and_hides_suggestions():

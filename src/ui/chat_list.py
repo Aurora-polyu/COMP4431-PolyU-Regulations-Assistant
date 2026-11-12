@@ -30,7 +30,9 @@ def _open_conversation(conversation_id):
     for message in messages:
         message_id = message.get("id")
         if message.get("role") == "assistant" and message_id:
-            st.session_state[f"rate_{message_id}"] = user_data.get_rating(message_id)
+            rating = user_data.get_rating(message_id)
+            # Stored +1/-1; st.feedback("thumbs") uses 1 (up) / 0 (down).
+            st.session_state[f"rate_{message_id}"] = None if rating is None else int(rating > 0)
 
 
 def _reset_chat():

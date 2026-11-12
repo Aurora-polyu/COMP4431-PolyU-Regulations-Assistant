@@ -69,7 +69,9 @@ def _section_id(section: str) -> str:
 ))
 def get_section(section: str) -> list[dict]:
     chunks = [json.loads(line) for line in CHUNKS_PATH.read_text(encoding="utf-8").splitlines() if line.strip()]
-    found = [c for c in chunks if c["section"].startswith(section.strip())]
+    wanted = section.strip().rstrip(".")
+    # Match whole ids so "1" returns chapter 1 only, not chapters 10 to 12.
+    found = [c for c in chunks if (sid := _section_id(c["section"]).rstrip(".")) == wanted or sid.startswith(wanted + ".")]
     if found:
         return found
     ids = list(dict.fromkeys(_section_id(c["section"]) for c in chunks))

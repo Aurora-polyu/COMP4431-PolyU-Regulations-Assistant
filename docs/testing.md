@@ -7,9 +7,17 @@ python -m pip check
 HANDBOOK_PDF="$PWD/data/handbook.pdf" python -m pytest -q -rs
 ```
 
-Tests requiring the handbook may be skipped when it is unavailable; check the reported skips. The suite covers extraction and reviewed table transformations, retrieval and index consistency, conversation responses, citations, and the Streamlit interface. Tests use test doubles and temporary files, so they do not require live model provider requests.
+Tests requiring the handbook may be skipped when it is unavailable; check the reported skips. The suite covers extraction and reviewed table transformations, retrieval and index consistency, conversation responses, citations, the Streamlit interface, and local feedback storage (`tests/test_user_data.py`, `tests/test_feedback.py`). Tests use test doubles and temporary files, so they do not require live model provider requests.
 
 For manual review, run the app with the real handbook index and ask representative questions, including follow-ups and questions with insufficient evidence. Compare every claim and cited passage with the relevant PDF page, including table layout, conditions, and printed/PDF page numbers. A valid citation ID alone does not establish that the answer is correct or complete. Live model calls may incur charges.
+
+Feedback is reviewed from the local database:
+
+```sh
+python scripts/export_feedback.py --out feedback.csv
+```
+
+The export lists each rating and report with its timestamp, message id, rating, reason, comment, question, answer and supporting chunk ids, and prints the counts of likes, dislikes and reports. `--out feedback.jsonl` writes JSON Lines instead of CSV.
 
 See [Data and indexing](data-and-indexing.md) for candidate extraction and validation without replacing active artifacts.
 

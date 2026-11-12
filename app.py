@@ -154,6 +154,9 @@ else:
 
     for message in st.session_state.messages:
         _render_message(message)
+        if message.get("role") == "assistant" and message.get("id"):
+            with st.container(key=f"actions_{message['id']}"):
+                render_action_bar(message)
 
     if question:
         render_turn(question)

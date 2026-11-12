@@ -1,60 +1,72 @@
-# Stage E preparation and handoff
+# Stage E evaluation summary
 
-**Date:** 2026-11-07 (Hong Kong)
+**Date:** 2026-11-11 (Hong Kong). This summary replaces the earlier Stage E record of 2026-11-07 and reports the most recent full run.
 
-**Prepared by:** Codex
-
-**Status:** Evaluation completed on 2026-11-07. The project user approved the questions and scoring, reviewed the two reported answer issues, and accepted both as sufficient to close Stage E. The recorded claim-support results and limitations are unchanged. The project user reported completing the independent teammate review on 2026-11-07. The recorded limitations remain; no separate release-readiness decision is claimed.
+**Status:** The project user confirmed on 2026-11-11 that the current 30-question set is the approved evaluation set. Results below are from one live run on that set. They were graded by Claude Code, not by an independent human reviewer, and they are small-sample observations, not release approval.
 
 ## Sources and question set
 
-The local PDF SHA-256 is `4fb771304c1d1ae17f2e2d1187b8878d2e0942966959eda1b3bfbbc48cf9a464` and the local chunks SHA-256 is `4c9ba414555b6fd35a184088f8768cdd2d98fb296fbe7f4522f37704e4683bc3`, matching the Stage A approvals. The existing `/private/tmp/gp-stage-b-index.pTotFHEc` manifest points to these chunks at their current absolute path and the approved hash; a real retrieval returned the expected retake passage. Its generation is `5d8469f9af98404396d5153ac7578419`, with `BAAI/bge-small-en-v1.5` at revision `5c38ec7c405ec4b44b94cc5a9bb96e735b38267a`. This temporary index may disappear; rebuild in a fresh directory if unavailable or stale.
+| Item | SHA-256 |
+|---|---|
+| `data/handbook.pdf` | `4fb771304c1d1ae17f2e2d1187b8878d2e0942966959eda1b3bfbbc48cf9a464` |
+| `data/chunks.jsonl` | `4c9ba414555b6fd35a184088f8768cdd2d98fb296fbe7f4522f37704e4683bc3` |
+| `data/stage_e_questions.json` (approved set) | `dc5e84aeece876735819a49d0da2474f9d731d49f1d90ad5eb01175eb0c0768e` |
+| `data/stage_e_questions.md` | `d3a98f4c891c10c161ec9587050356d0ef8d9dbccde0ba776f848e4e51df40ea` |
 
-The local, Git-ignored files `data/stage_e_questions.md` and `data/stage_e_questions.json` contain 30 questions approved by the project user: 8 direct, 8 conditional, 5 multi-section, 4 follow-ups and 5 unambiguous unsupported questions. The JSON SHA-256 at preparation is `476790c7892f9d3b0f820823525f7ac0b7583847c61fd81dcadec9978f639aca`. The four follow-ups use fixed, source-backed preceding turns; a separate UI check is needed to exercise organically generated history. The questions include distinct class absence, deferment and permanent withdrawal cases. No deliberate ambiguity cases are included, as requested by the user.
+The question file records the PDF and chunk hashes above, and they match the files on disk. Earlier records quoted a different question-file hash (`476790c7…`). The restored file differs from that version, and the user has approved the current file, so the hash above is the one of record. Any later edit to the file changes its hash and should be recorded here.
 
-The question draft records expected evidence, acceptable chunk IDs and both page numbers. Codex reviewed the expected rules against the chunk text and the Stage A and B visual source-review records. In addition, every word of each of the 12 distinct cited chunk texts was found in order on its specified PDF text-layer page. That automated text comparison does not verify table relationships, claim completeness or whether the selected acceptable IDs are exhaustive. Contact-table relationships rely on the earlier visual reviews. The user approved the questions and scoring and directed the benchmark to proceed. The project user subsequently reported completing the independent teammate review; no separate review notes were supplied. Broader table-coverage limitations continue to apply.
+The set has 30 questions: 8 direct, 8 conditional, 5 multi-section, 4 follow-up and 5 unambiguous unsupported. Each answerable question lists its expected facts, acceptable chunk IDs and page numbers. The four follow-up cases use fixed, source-backed earlier turns. No deliberate ambiguity cases are included. The local, git-ignored files `data/stage_e_questions.md` and `data/stage_e_questions.json` hold the questions.
 
-The proposed Recall@5 is the mean, over answerable questions, of the fraction of required evidence items represented by an acceptable top-five chunk. Unsupported cases have no recall denominator and are assessed separately for appropriate abstention. A correct answer contains all requested facts and material qualifications without incorrect claims; assess each factual claim against its cited passages. Record infrastructure errors separately and report attempted denominators. The project user agreed these rules; no separate teammate agreement is claimed.
+## Scoring rules
 
-## Clean environment and checks
+- **Evidence-item Recall@5:** for each answerable question, the fraction of required evidence items represented by an acceptable chunk in the actual top five, averaged over the 25 answerable questions. Unsupported questions have no recall denominator.
+- **Correct:** the answer contains all requested facts and material qualifications and no incorrect claims.
+- **Claims supported:** each factual claim is found in the cited passages (for answered cases).
+- **Appropriate abstention:** an unsupported question returns `insufficient_evidence`, without an invented answer.
 
-A new Python 3.12 virtual environment was created at `/tmp/gp-stage-e-env.icJKiJ` and the pinned `requirements.txt` installed. `pip check` reported no broken requirements. With `HANDBOOK_PDF` set to the local PDF, the full suite reported **84 passed, 16 subtests passed**, five SWIG deprecation warnings, and no skips. The environment is temporary and does not prove future dependency resolution will be identical; transitive dependencies are not locked. The clean-environment package versions are recorded locally in ignored `data/stage_e_clean_env_packages.txt`.
+## Run conditions
 
-A real-service Streamlit `AppTest` in the clean environment used the Stage B index and `deepseek-flash`. It displayed an answer and citation expander for a retake question, displayed a follow-up and citations, cleared the conversation and expanders on reset, and showed safe guidance for an intentionally missing index. The same UI flow was repeated after the code changes. These are UI flow checks; the script did not independently grade the generated claims or replace the Stage E benchmark. Streamlit emitted its expected bare-mode context warning. After the code changes, the complete suite in that clean environment reported **85 passed, 16 subtests passed**, five SWIG warnings and no skips.
+- Real retriever and index: `handbook-index`, generation `1daf62406acf49ea83b4d1333de593a1`, built from the chunks above with `BAAI/bge-small-en-v1.5` at revision `5c38ec7c405ec4b44b94cc5a9bb96e735b38267a`.
+- Model: `deepseek-flash` through the project's chat-completions client. Python 3.12.13.
+- Code: commit `25e3c9b6e2403addbe2af6e0bce8c5e9ef468a96` with a clean working tree at the time of the run (no code was changed for this evaluation).
+- Each question was asked once, with a fresh conversation except for the four fixed follow-up histories. Latency is the answer service plus network time, not browser rendering.
+- Raw results (retrieved top five, queries, answers, timings) are kept locally and git-ignored in `data/presentation_eval_2026-11-11.jsonl`.
 
-The runner, `scripts/stage_e_run.py`, wraps the real retriever to capture the query actually used by the answer service, ranked chunks, response and timings. A deterministic injected follow-up check verified query capture, response capture and evidence-item recall calculation. The injected check is a runner check, not a benchmark or correctness assessment. The runner creates a new ignored JSONL output without overwriting existing results, records source and question hashes, index manifest, commit, environment, model and dependencies, and leaves correctness and claim-support fields unscored for manual review. It requires a reviewer name and the exact reviewed question-file hash; these arguments record an assertion and do not themselves prove review happened.
+## Results (30 questions, one run)
 
-## Live evaluation and manual assessment
+| Measure | Result |
+|---|---|
+| Response status matched expectation | 30/30 (25 answered, 5 insufficient evidence) |
+| Evidence-item Recall@5 | 25/25 = 100% |
+| Correct answerable cases | 24/25 = 96% |
+| Answered cases whose factual claims were all supported by the cited text | 25/25 |
+| Appropriate abstention on unsupported cases | 5/5 |
+| Errors | 0 |
 
-The run used `deepseek-flash`, the Stage B index and model revision recorded above, Python 3.12.13, and the project environment. The approved 30-question JSON hash remained `476790c7892f9d3b0f820823525f7ac0b7583847c61fd81dcadec9978f639aca`. The baseline code commit was `314777be322bf3d1fb4170b3c3a34be13f823ad5`; later retests used uncommitted changes to retrieval and answer prompting. Each retest result records source-file hashes and a working-tree diff hash; local copies of the final retest source and dependency versions are retained. After the second retest, only a comment in `src/retriever.py` was clarified; its executable code is unchanged from the recorded snapshot.
+By category: direct 8/8 correct, conditional 7/8, multi-section 5/5, follow-up 4/4.
 
-Codex manually reviewed the requested facts and each factual claim against the cited passages and PDF-checked source relationships. The local ignored `data/stage_e_results_initial.jsonl`, `data/stage_e_results_retest.jsonl`, and `data/stage_e_results_retest2.jsonl` preserve the actual retrieval queries, ranked chunks, responses and timings. Their corresponding `data/stage_e_manual_review_initial.md`, `data/stage_e_manual_review_retest.md`, and `data/stage_e_manual_review_retest2.md` contain the claim-level judgments. Initial outcomes were not overwritten. The following table uses the 25 answerable cases as the denominator for accuracy and Recall@5. Grounded-answer counts use answered cases as the denominator; an unnecessary clarification is counted as an answer failure, not as a grounded answer. Unsupported-case abstentions use all five unsupported cases as the denominator.
+**Latency:** the first (cold) query took 8.91 s. The median of the other 29 was 2.75 s, the 90th percentile of all 30 was 7.01 s, and the slowest was 10.54 s (M04, a two-topic comparison). These are single-run observations, not guarantees.
 
-| Run | Evidence-item Recall@5 | Correct answerable cases | Answered cases with all factual claims supported | Appropriate unsupported-case abstention |
-|---|---:|---:|---:|---:|
-| Initial | 24/25 = 96% | 23/25 = 92% | 23/24 = 95.8% | 5/5 = 100% |
-| First retest | 25/25 = 100% | 21/25 = 84% | 24/25 = 96% | 5/5 = 100% |
-| Second retest | 25/25 = 100% | 23/25 = 92% | 23/25 = 92% | 5/5 = 100% |
+**The one incorrect case (C07):** the answer correctly says that failing a compulsory subject after two retakes leads to de-registration, but omits that departments may impose stricter requirements on the retaking of particular types of subjects. By the scoring rule, a missing material qualification means the answer is not fully correct. All statements it did make are supported by the cited passages.
 
-Initial per-category Recall@5 was direct 8/8, conditional 7/8, multi-section 5/5 and follow-up 4/4; both retests retrieved the approved evidence for every answerable case. Initial correctness was direct 8/8, conditional 7/8, multi-section 4/5 and follow-up 4/4. First-retest correctness was 6/8, 8/8, 4/5 and 3/4 respectively; second-retest correctness was 8/8, 7/8, 4/5 and 4/4. The first retest omitted several qualifications specified in the approved expectations. The second restored those but produced two overbroad factual claims. No infrastructure errors occurred in the 30 cases in any run.
+**Repeat stability.** A separate sweep ran 35 candidate questions three times each with fresh conversations (8 direct, 8 conditional, 8 follow-up chains run as real two-turn chats, 11 unsupported), saved in `data/presentation_stability_sweep_2026-11-11.jsonl`. In all three runs, 33 of 35 returned the expected status, contained every required fact and cited an acceptable source; retrieval returned the same top five each time and only the wording changed. The two exceptions were C07, which again omitted the stricter-rules qualification, and a Wi-Fi password question, which was refused once and answered twice because the handbook does cover campus Wi-Fi. One further follow-up chain (leave of absence, then approval) returned a clarification question in one of three runs.
 
-The initial run met the project targets of at least 90% Recall@5 and 90% answer correctness on this small set, but did not meet the aim of 100% grounded citations. Both retests were performed after adapting the code to this same set; they are **not independent estimates** of generalization. Model answers can vary, and the set is small and concentrated on a limited number of handbook sections. The four follow-up histories use fixed, source-backed prior turns rather than organically generated conversations. These figures do not establish complete handbook, table or citation coverage.
+## Limitations
 
-End-to-end answer-service latency included model calls and network time, not browser rendering. The initial cold first case took 8.48 s and the median of 29 subsequent cases was 2.60 s; the first retest measured 7.58 s cold and 2.92 s warm median; the second retest measured 7.93 s cold and 2.83 s warm median. These are local single-run observations, not latency guarantees.
+- **One run, graded by Claude Code.** Each answer was compared with the approved expected facts, and each factual claim was checked against the text of the cited passages (and, for neighbouring claims, adjacent passages). This was a text comparison. It did not re-check table layout or the PDF visually and is not an independent human review.
+- **Not an independent estimate.** The retrieval and prompting code was tuned against this same 30-question set in earlier stages (the withdrawal-keyword handling in the retriever, and answer-prompt refinements), so these figures do not show how the system generalises to new questions.
+- **Small and narrow.** The set covers a limited number of handbook sections, has only fixed follow-up histories, and has no deliberate ambiguity cases. The unsupported questions are clearly external or future facts.
+- **Answers vary in wording** between runs and sometimes add extra supported detail. A valid citation ID and an evidence-only prompt do not guarantee that every claim is supported or complete.
+- **Extraction limits.** The accepted limitation on possible undiscovered or imperfectly extracted tables remains. Check cited numbers and table relationships against the PDF.
 
-## Changes, open issues and handoff
+## Open items carried forward
 
-- **Retrieval owner — Member 2:** the initial programme-withdrawal case missed both expected chunks and the answer unnecessarily asked for clarification. The retriever now normalizes common verb/noun forms of withdrawal for BM25 while retaining the vector query and the other terms describing programme, major or subject context. An offline comparison found the expected programme passage for the failed case and a separate previously missed programme query; subject-withdrawal, second-major withdrawal and temporary-class-absence probes retained their expected top-five passages. The full second retest achieved 25/25 evidence-item recall. This is a narrow evaluation, not proof against ranking regressions. The existing index need not be rebuilt because BM25 tokens are computed from indexed text at retriever load; restart the process to load the changed code.
-- **Answer-service owner — Member 3:** the initial comparison answer generalized a deadline; the first retest omitted expected qualifications in three other cases and made an overbroad fee claim. Prompt refinements improved some cases, but the second retest still incorrectly generalized a de-registration rule and omitted exceptions and scope in a withdrawal comparison. The user reviewed and accepted both final-retest issues for Stage E. They remain documented limitations: a valid citation ID and prompt constraints do not guarantee claim support. The answer-service owner should consider stronger mitigation and retesting as part of subsequent review.
-- **Data owner — Member 1:** the accepted Stage A limitation on undiscovered or imperfectly extracted tables remains. Keep checking cited numerical and table relationships against the PDF when adding evaluation cases.
-- **UI/integration owner — Member 4:** deterministic tests and the repeated real-service UI flow passed, but the UI cannot compensate for unsupported model claims. Review the interfaces and end-to-end behavior after answer-service fixes.
+- **Answer service:** completeness of qualifications (C07) remains the known weak point. Stronger mitigation and retesting would be needed before any release claim.
+- **Retrieval:** the withdrawal-keyword normalisation was validated only on this set and a few probes, not against ranking regressions in general.
+- **Data:** keep checking cited numerical and table relationships against the PDF whenever evaluation cases are added.
+- **Interface:** the interface cannot compensate for unsupported or incomplete model claims.
+- Do not include `.env`, the PDF, virtual environments, indexes or these ignored evaluation files in commits. The user has confirmed that redistribution of the handbook and handbook-derived project files is acceptable. That is the user's confirmation, not an independent licence determination.
 
-Candidate demo cases, selected only after this evaluation, are D01 (direct lookup), C04 (programme withdrawal) and U01 (unsupported request). These are candidates, not a release approval: verify the live responses immediately before use and do not demonstrate an unsafe answer as a reliable result.
+## Demo cases
 
-The project user reported completing the independent teammate review on 2026-11-07. The issues, owners and dispositions documented above remain in effect. Follow the team’s review and merge process. No release-readiness claim is made.
-
-The Stage A review records that the project user confirmed redistribution of the handbook and handbook-derived project files. This is the user's confirmation, not an independent licence determination or approval for a particular publication venue. The question set, detailed results and local source snapshots remain ignored and local as requested; do not include `.env`, the PDF, environments, indexes or those evaluation files in changes.
-
-## User disposition of C07 and M04
-
-After reviewing the final retest answers, the project user stated that both the C07 issue and M04 omissions are acceptable and directed that Stage E be committed. This records the user’s acceptance; the original claim-support assessments and reported scores above are preserved. This acceptance predates the subsequently reported independent review and does not claim that the omissions have been corrected.
+The demo questions were chosen from the three-run stability sweep (see `presentation/PRESENTATION_PLAN.md`). Re-verify the live responses immediately before presenting.

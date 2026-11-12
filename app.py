@@ -1,11 +1,16 @@
 """English-language Streamlit interface for the handbook answer service."""
 
-import re
+import uuid
 from pathlib import Path
 
 import streamlit as st
 
 from src.conversation import FIXTURE_WARNING, NO_EVIDENCE_ANSWER, answer_question
+from src.ui.actions import render_action_bar
+from src.ui.chat_list import persist_turn, render_chat_list
+from src.ui.collection import render_collection_view
+from src.ui.sources import render_source_popovers, strip_citation_markers
+from src.ui.suggestions import render_suggestions
 
 st.set_page_config(
     page_title="PolyU Academic Regulations Assistant",
@@ -22,10 +27,17 @@ st.markdown(f"<style>{STYLESHEET.read_text(encoding='utf-8')}</style>", unsafe_a
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "view" not in st.session_state:
+    st.session_state.view = "Chat"
 
 
 def _new_chat():
     st.session_state.messages = []
+    st.session_state.view = "Chat"
+
+
+def _show_collection():
+    st.session_state.view = "Collection"
 
 
 ERROR_MESSAGES = {
@@ -64,28 +76,12 @@ def _display_response(resp):
     return content
 
 
-def _remove_citation_markers(content, chunks):
-    """Hide cited passage IDs from display without changing conversation history."""
-    ids = {chunk.get("chunk_id") for chunk in chunks
-           if isinstance(chunk, dict) and isinstance(chunk.get("chunk_id"), str)}
-
-    def replace(match):
-        return "" if match.group(1) in ids else match.group(0)
-
-    return re.sub(r"[ \t]*\[([^\[\]\n]+)\]", replace, content)
-
-
 def _render_message(message):
     with st.chat_message(message["role"], avatar=f"assets/{message['role']}_avatar.svg"):
         chunks = message.get("chunks", [])
-        content = _remove_citation_markers(message["content"], chunks) if message["role"] == "assistant" else message["content"]
+        content = strip_citation_markers(message["content"], chunks) if message["role"] == "assistant" else message["content"]
         st.markdown(content)
-        for chunk in chunks:
-            title = (f"{chunk.get('section', 'Source')} · "
-                     f"printed p. {chunk.get('printed_page', '?')} / PDF p. {chunk.get('pdf_page', '?')}")
-            with st.popover(title, width="stretch"):
-                with st.container(height=300, border=False):
-                    st.text(chunk.get("text", ""))
+        render_source_popovers(chunks)
 
 
 def render_turn(question):
@@ -100,12 +96,26 @@ def render_turn(question):
         chunks = response.get("cited_chunks", []) if response.get("status") == "answered" else []
         if not isinstance(chunks, list):
             chunks = []
+        status = response.get("status")
+        evidence_source = response.get("evidence_source")
     except Exception:
         content = GENERIC_ERROR
         chunks = []
-    message = {"role": "assistant", "content": content, "chunks": chunks}
+        status = "error"
+        evidence_source = None
+    message = {
+        "role": "assistant",
+        "content": content,
+        "chunks": chunks,
+        "id": uuid.uuid4().hex,
+        "question": question,
+        "status": status,
+        "evidence_source": evidence_source,
+    }
     st.session_state.messages.append(message)
     _render_message(message)
+    render_action_bar(message)
+    persist_turn(user, message)
 
 
 with st.sidebar:
@@ -114,7 +124,15 @@ with st.sidebar:
         st.image("assets/polyu_logo.svg", width=55)
     with name:
         st.markdown(f"<div class='sidebar-title'>{TITLE}</div>", unsafe_allow_html=True)
-    st.button("New conversation", on_click=_new_chat, use_container_width=True)
+    with st.container(key="new_chat_button"):
+        st.button("New chat", key="new_chat", on_click=_new_chat, use_container_width=True)
+    st.button("Temporary chat", key="temporary_chat", use_container_width=True)
+    st.text_input("Search chats", key="search")
+    st.button("Collection", key="show_collection", on_click=_show_collection, use_container_width=True)
+    st.markdown("**Chats**")
+    render_chat_list()
+    with st.popover("Settings"):
+        pass
     st.markdown("**About this assistant**")
     st.markdown("Ask questions about academic regulations using the student handbook.")
     with st.container(key="sidebar_picture"):
@@ -123,12 +141,19 @@ with st.sidebar:
         st.markdown("**Handbook**  \n2026/27 Student Handbook for Taught Programmes")
         st.markdown("Check the official handbook or contact your department for decisions about your situation.")
 
-question = st.chat_input("Ask about PolyU academic regulations...")
-if not st.session_state.messages and not question:
-    st.markdown(f"<div class='welcome'>{MOTTO}</div>", unsafe_allow_html=True)
 
-for message in st.session_state.messages:
-    _render_message(message)
+if st.session_state.view == "Collection":
+    render_collection_view()
+else:
+    question = st.chat_input("Ask about PolyU academic regulations...")
+    if not st.session_state.messages and not question:
+        st.markdown(f"<div class='welcome'>{MOTTO}</div>", unsafe_allow_html=True)
+        suggestion = render_suggestions()
+        if suggestion:
+            question = suggestion
 
-if question:
-    render_turn(question)
+    for message in st.session_state.messages:
+        _render_message(message)
+
+    if question:
+        render_turn(question)

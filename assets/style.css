@@ -16,10 +16,10 @@ html, body, [data-testid="stAppViewContainer"] { font-family: Geist, -apple-syst
 [data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: 16px; }
 [data-testid="stSidebar"] [data-testid="stMarkdown"] p { font-size: 14px; line-height: 1.55; }
 [data-testid="stSidebar"] [data-testid="stMarkdown"] strong { font-size: 15px; }
-[data-testid="stSidebar"] [data-testid="stButton"] button {
+[data-testid="stSidebar"] .st-key-new_chat_button [data-testid="stButton"] button {
     width: 100%; margin-top: 16px; color: white; background: var(--red); border: 0; border-radius: 8px;
 }
-[data-testid="stSidebar"] [data-testid="stButton"] button:hover { background: var(--red-deep); color: white; }
+[data-testid="stSidebar"] .st-key-new_chat_button [data-testid="stButton"] button:hover { background: var(--red-deep); color: white; }
 .sidebar-title { font-family: "Source Sans 3", sans-serif; font-size: 21px; font-weight: 600; line-height: 1.3; overflow-wrap: break-word; color: var(--ink); }
 .welcome { margin: 50vh auto 32px; max-width: 700px; text-align: center; font-size: 24px; font-weight: 600; font-style: italic; line-height: 1.4; color: #77777A; }
 [data-testid="stChatMessage"] { background: transparent; padding: 0; margin: 16px 0; }

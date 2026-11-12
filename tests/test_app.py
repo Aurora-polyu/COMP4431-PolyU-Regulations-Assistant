@@ -11,6 +11,12 @@ CHUNK = {"chunk_id": "test_1", "section": "5.C Retaking", "printed_page": 33,
          "pdf_page": 45, "text": "Complete passage.\nSecond line."}
 
 
+@pytest.fixture(autouse=True)
+def isolated_user_db(tmp_path, monkeypatch):
+    """Keep the chat-history writes of these app runs out of the real database."""
+    monkeypatch.setenv("USER_DATA_DB", str(tmp_path / "user_data.sqlite"))
+
+
 def response(status="answered", answer="Grounded answer.", source="handbook", **extra):
     result = {"status": status, "answer": answer, "evidence_source": source,
               "clarification_question": None, "cited_chunks": [CHUNK]}

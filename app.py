@@ -1,11 +1,14 @@
 """English-language Streamlit interface for the handbook answer service."""
 
-import re
+import uuid
 from pathlib import Path
 
 import streamlit as st
 
 from src.conversation import FIXTURE_WARNING, NO_EVIDENCE_ANSWER, answer_question
+from src.ui.actions import render_action_bar
+from src.ui.chat_list import persist_turn
+from src.ui.sources import render_source_popovers, strip_citation_markers
 
 st.set_page_config(
     page_title="PolyU Academic Regulations Assistant",
@@ -64,28 +67,12 @@ def _display_response(resp):
     return content
 
 
-def _remove_citation_markers(content, chunks):
-    """Hide cited passage IDs from display without changing conversation history."""
-    ids = {chunk.get("chunk_id") for chunk in chunks
-           if isinstance(chunk, dict) and isinstance(chunk.get("chunk_id"), str)}
-
-    def replace(match):
-        return "" if match.group(1) in ids else match.group(0)
-
-    return re.sub(r"[ \t]*\[([^\[\]\n]+)\]", replace, content)
-
-
 def _render_message(message):
     with st.chat_message(message["role"], avatar=f"assets/{message['role']}_avatar.svg"):
         chunks = message.get("chunks", [])
-        content = _remove_citation_markers(message["content"], chunks) if message["role"] == "assistant" else message["content"]
+        content = strip_citation_markers(message["content"], chunks) if message["role"] == "assistant" else message["content"]
         st.markdown(content)
-        for chunk in chunks:
-            title = (f"{chunk.get('section', 'Source')} · "
-                     f"printed p. {chunk.get('printed_page', '?')} / PDF p. {chunk.get('pdf_page', '?')}")
-            with st.popover(title, width="stretch"):
-                with st.container(height=300, border=False):
-                    st.text(chunk.get("text", ""))
+        render_source_popovers(chunks)
 
 
 def render_turn(question):
@@ -100,12 +87,26 @@ def render_turn(question):
         chunks = response.get("cited_chunks", []) if response.get("status") == "answered" else []
         if not isinstance(chunks, list):
             chunks = []
+        status = response.get("status")
+        evidence_source = response.get("evidence_source")
     except Exception:
         content = GENERIC_ERROR
         chunks = []
-    message = {"role": "assistant", "content": content, "chunks": chunks}
+        status = "error"
+        evidence_source = None
+    message = {
+        "role": "assistant",
+        "content": content,
+        "chunks": chunks,
+        "id": uuid.uuid4().hex,
+        "question": question,
+        "status": status,
+        "evidence_source": evidence_source,
+    }
     st.session_state.messages.append(message)
     _render_message(message)
+    render_action_bar(message)
+    persist_turn(user, message)
 
 
 with st.sidebar:

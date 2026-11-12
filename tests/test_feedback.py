@@ -67,6 +67,12 @@ def test_rating_flow_updates_stored_rating(tmp_path, monkeypatch):
     assert len(rows) == 1
     assert rows[0]["rating"] == -1
     assert user_data.get_rating(mid, db_path=tmp_path / "user_data.sqlite") == -1
+    assert app.feedback[0].value == 0
+
+
+def _action_bar_button(app, label):
+    """Return the single widget with the given label in the per-answer bar."""
+    return [b for b in app.button if b.label == label][0]
 
 
 def test_report_flow_saves_reason_and_comment(tmp_path, monkeypatch):
@@ -76,7 +82,7 @@ def test_report_flow_saves_reason_and_comment(tmp_path, monkeypatch):
 
     app.selectbox[0].set_value("wrong fact").run()
     app.text_area[0].set_value("Page 33 states the exception.").run()
-    app.button[0].click().run()
+    _action_bar_button(app, "Submit").click().run()
     rows = report_rows(tmp_path / "user_data.sqlite")
     assert len(rows) == 1
     assert rows[0]["message_id"] == mid
@@ -102,7 +108,7 @@ def test_rating_change_keeps_report_row(tmp_path, monkeypatch):
     assert user_data.get_rating("m1", db_path=db) == -1
     app.selectbox[0].set_value("missing condition or exception").run()
     app.text_area[0].set_value("The deadline is also stated.").run()
-    app.button[0].click().run()
+    _action_bar_button(app, "Submit").click().run()
 
     assert user_data.get_rating("m1", db_path=db) == -1
     rows = report_rows(db)
@@ -158,7 +164,7 @@ def test_export_csv_and_jsonl(tmp_path, monkeypatch):
 
 def test_submit_without_reason_shows_toast_but_no_row(tmp_path, monkeypatch):
     app = app_with_reply(tmp_path, monkeypatch)
-    app.button[0].click().run()
+    _action_bar_button(app, "Submit").click().run()
     assert report_rows(tmp_path / "user_data.sqlite") == []
     assert any("Please select a reason" in t.value for t in app.toast)
 

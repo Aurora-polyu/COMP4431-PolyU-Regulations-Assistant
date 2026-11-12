@@ -62,8 +62,11 @@ def render_rating_and_report(message):
         columns = st.columns([0.35, 0.65], vertical_alignment="bottom")
         with columns[0]:
             if _eligible(message, RATE_STATUSES):
+                default = _widget_default(message)
+                if default is None and message.get("status") == "answered":
+                    default = 0  # hold the current selection on answered replies
                 st.feedback("thumbs", key=f"rate_{message['id']}",
-                            default=_widget_default(message),
+                            default=default,
                             on_change=_on_rating_changed, args=(message,))
         with columns[1]:
             if _eligible(message, REPORT_STATUSES):

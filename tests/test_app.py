@@ -30,6 +30,17 @@ def contents(app):
     return [m["content"] for m in app.session_state["messages"]]
 
 
+def button(app, label):
+    found = [b for b in app.button if b.label == label]
+    assert len(found) == 1, [b.label for b in app.button]
+    return found[0]
+
+
+def source_popovers(app):
+    return [p for p in app.get("popover")
+            if " · printed p. " in p.proto.popover.label]
+
+
 def test_answer_followup_history_citations_rerun_and_reset():
     seen = []
     def service(question, history):
@@ -44,15 +55,15 @@ def test_answer_followup_history_citations_rerun_and_reset():
         ask(app, "Undergraduate")
         assert seen[1][1] == [{"role": "user", "content": "First question"},
                                {"role": "assistant", "content": "Which programme?"}]
-        assert len(app.get("popover")) == 1
-        assert "5.C Retaking" in app.get("popover")[0].proto.popover.label
-        assert "printed p. 33 / PDF p. 45" in app.get("popover")[0].proto.popover.label
+        assert len(source_popovers(app)) == 1
+        assert "5.C Retaking" in source_popovers(app)[0].proto.popover.label
+        assert "printed p. 33 / PDF p. 45" in source_popovers(app)[0].proto.popover.label
         assert app.text[0].value == CHUNK["text"]
         app.run()
         assert len(seen) == 2 and len(contents(app)) == 4
-        app.button[0].click().run()
+        button(app, "New chat").click().run()
         assert contents(app) == []
-        assert len(app.get("popover")) == 0
+        assert len(source_popovers(app)) == 0
         assert not app.exception
 
 
@@ -61,12 +72,13 @@ def test_welcome_disappears_on_submit_and_returns_on_reset():
     with patch("src.conversation.answer_question", return_value=response()) as service:
         app = start()
         assert any(motto in item.value for item in app.markdown)
-        assert len(app.button) == 1
+        assert button(app, "New chat")
+        assert not [b for b in app.button if b.label in ("Save", "Saved", "Report")]
         ask(app, "A question")
         assert not any(motto in item.value for item in app.markdown)
         assert service.call_args.args == ("A question", [])
-        assert app.get("popover")[0].proto.popover.open is False
-        app.button[0].click().run()
+        assert source_popovers(app)[0].proto.popover.open is False
+        button(app, "New chat").click().run()
         assert any(motto in item.value for item in app.markdown)
         assert not app.exception
 
@@ -81,7 +93,7 @@ def test_fixture_warning_survives_all_statuses(status):
         app.run()
         assert any(FIXTURE_WARNING in item.value for item in app.markdown)
         if status != "answered":
-            assert not app.get("popover")
+            assert not source_popovers(app)
 
 
 def test_safe_error_guidance_and_exceptions_do_not_expose_secrets():
@@ -147,15 +159,15 @@ def test_citation_markers_are_hidden_without_changing_history():
         ask(app, "Question")
         assert contents(app)[1] == answer
         assert any(item.value == displayed for item in app.markdown)
-        assert app.get("popover")[0].proto.popover.label.startswith("5.C Retaking")
-        assert app.get("popover")[1].proto.popover.label.startswith("6.C Academic Probation")
+        assert source_popovers(app)[0].proto.popover.label.startswith("5.C Retaking")
+        assert source_popovers(app)[1].proto.popover.label.startswith("6.C Academic Probation")
         assert app.text[0].value == CHUNK["text"]
         app.run()
         assert any(item.value == displayed for item in app.markdown)
         ask(app, "Follow-up")
         assert service.call_args.args[1][1] == {"role": "assistant", "content": answer}
-        app.button[0].click().run()
-        assert not app.get("popover")
+        button(app, "New chat").click().run()
+        assert not source_popovers(app)
 
 
 def test_answer_without_markers_has_no_sources_fallback():
@@ -164,7 +176,7 @@ def test_answer_without_markers_has_no_sources_fallback():
         app = start()
         ask(app, "Question")
         assert any(item.value == answer for item in app.markdown)
-        assert len(app.get("popover")) == 1
+        assert len(source_popovers(app)) == 1
         assert not any("Sources:" in item.value for item in app.markdown)
 
 

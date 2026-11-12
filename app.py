@@ -7,8 +7,10 @@ import streamlit as st
 
 from src.conversation import FIXTURE_WARNING, NO_EVIDENCE_ANSWER, answer_question
 from src.ui.actions import render_action_bar
-from src.ui.chat_list import persist_turn
+from src.ui.chat_list import persist_turn, render_chat_list
+from src.ui.collection import render_collection_view
 from src.ui.sources import render_source_popovers, strip_citation_markers
+from src.ui.suggestions import render_suggestions
 
 st.set_page_config(
     page_title="PolyU Academic Regulations Assistant",
@@ -25,10 +27,17 @@ st.markdown(f"<style>{STYLESHEET.read_text(encoding='utf-8')}</style>", unsafe_a
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "view" not in st.session_state:
+    st.session_state.view = "Chat"
 
 
 def _new_chat():
     st.session_state.messages = []
+    st.session_state.view = "Chat"
+
+
+def _show_collection():
+    st.session_state.view = "Collection"
 
 
 ERROR_MESSAGES = {
@@ -115,7 +124,15 @@ with st.sidebar:
         st.image("assets/polyu_logo.svg", width=55)
     with name:
         st.markdown(f"<div class='sidebar-title'>{TITLE}</div>", unsafe_allow_html=True)
-    st.button("New conversation", on_click=_new_chat, use_container_width=True)
+    with st.container(key="new_chat_button"):
+        st.button("New chat", key="new_chat", on_click=_new_chat, use_container_width=True)
+    st.button("Temporary chat", key="temporary_chat", use_container_width=True)
+    st.text_input("Search chats", key="search")
+    st.button("Collection", key="show_collection", on_click=_show_collection, use_container_width=True)
+    st.markdown("**Chats**")
+    render_chat_list()
+    with st.popover("Settings"):
+        pass
     st.markdown("**About this assistant**")
     st.markdown("Ask questions about academic regulations using the student handbook.")
     with st.container(key="sidebar_picture"):
@@ -124,12 +141,19 @@ with st.sidebar:
         st.markdown("**Handbook**  \n2026/27 Student Handbook for Taught Programmes")
         st.markdown("Check the official handbook or contact your department for decisions about your situation.")
 
-question = st.chat_input("Ask about PolyU academic regulations...")
-if not st.session_state.messages and not question:
-    st.markdown(f"<div class='welcome'>{MOTTO}</div>", unsafe_allow_html=True)
 
-for message in st.session_state.messages:
-    _render_message(message)
+if st.session_state.view == "Collection":
+    render_collection_view()
+else:
+    question = st.chat_input("Ask about PolyU academic regulations...")
+    if not st.session_state.messages and not question:
+        st.markdown(f"<div class='welcome'>{MOTTO}</div>", unsafe_allow_html=True)
+        suggestion = render_suggestions()
+        if suggestion:
+            question = suggestion
 
-if question:
-    render_turn(question)
+    for message in st.session_state.messages:
+        _render_message(message)
+
+    if question:
+        render_turn(question)

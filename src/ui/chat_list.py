@@ -12,12 +12,11 @@ def persist_turn(user_message, assistant_message):
     if st.session_state.get("temporary"):
         return None
     conversation_id = st.session_state.get("chat_id")
-    if conversation_id is None:
-        title = " ".join((user_message.get("content") or "").split())[:TITLE_LENGTH]
-        conversation_id = user_data.create_conversation(title or "New chat")
-        st.session_state.chat_id = conversation_id
-    user_data.append_message(conversation_id, user_message)
-    user_data.append_message(conversation_id, assistant_message)
+    title = " ".join((user_message.get("content") or "").split())[:TITLE_LENGTH]
+    conversation_id = user_data.save_turn(
+        conversation_id, title or "New chat", user_message, assistant_message
+    )
+    st.session_state.chat_id = conversation_id
     return conversation_id
 
 

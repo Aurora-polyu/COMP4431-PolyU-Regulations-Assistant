@@ -141,7 +141,13 @@ def render_turn(question):
         "evidence_source": evidence_source,
     }
     st.session_state.messages.append(message)
-    persist_turn(user, message)
+    try:
+        persist_turn(user, message)
+    except Exception:
+        # A failed transaction stored neither message; keep session history aligned.
+        del st.session_state.messages[-2:]
+        st.error("Could not save this conversation. Check local storage and try your question again.")
+        return
     # Rerun so the sidebar list and the history loop (message + action bar) redraw.
     st.rerun()
 
@@ -184,7 +190,7 @@ if st.session_state.view == "Collection":
     render_collection_view()
 else:
     if st.session_state.temporary:
-        st.caption("Temporary chat: not saved")
+        st.caption("Temporary chat: not saved locally. Save and feedback are unavailable; questions are sent to the model provider.")
     question = st.chat_input("Ask about PolyU academic regulations...")
     if not st.session_state.messages and not question:
         st.markdown(f"<div class='welcome'>{MOTTO}</div>", unsafe_allow_html=True)

@@ -94,27 +94,34 @@ def create_conversation(title, db_path=None):
         return cursor.lastrowid
 
 
+def _insert_message(conn, conversation_id, message):
+    conn.execute(
+        "INSERT INTO chat_messages "
+        "(conversation_id, message_id, role, content, chunks, question, status, evidence_source) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (conversation_id, message.get("id"), message.get("role"),
+         message.get("content", ""), json.dumps(message.get("chunks", [])),
+         message.get("question"), message.get("status"), message.get("evidence_source")),
+    )
+
+
 def append_message(conversation_id, message, db_path=None):
     with _connection(db_path) as conn:
-        conn.execute(
-            "INSERT INTO chat_messages "
-            "(conversation_id, message_id, role, content, chunks, question, status, evidence_source) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (
-                conversation_id,
-                message.get("id"),
-                message.get("role"),
-                message.get("content", ""),
-                json.dumps(message.get("chunks", [])),
-                message.get("question"),
-                message.get("status"),
-                message.get("evidence_source"),
-            ),
-        )
-        conn.execute(
-            "UPDATE conversations SET updated_at = datetime('now') WHERE id = ?",
-            (conversation_id,),
-        )
+        _insert_message(conn, conversation_id, message)
+        conn.execute("UPDATE conversations SET updated_at = datetime('now') WHERE id = ?", (conversation_id,))
+
+
+def save_turn(conversation_id, title, user_message, assistant_message, db_path=None):
+    """Save the complete turn and its new conversation in one transaction."""
+    with _connection(db_path) as conn:
+        if conversation_id is None:
+            conversation_id = conn.execute(
+                "INSERT INTO conversations (title) VALUES (?)", (title,)
+            ).lastrowid
+        _insert_message(conn, conversation_id, user_message)
+        _insert_message(conn, conversation_id, assistant_message)
+        conn.execute("UPDATE conversations SET updated_at = datetime('now') WHERE id = ?", (conversation_id,))
+        return conversation_id
 
 
 def list_conversations(limit=15, search="", db_path=None):

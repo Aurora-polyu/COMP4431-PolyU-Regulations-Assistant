@@ -1,6 +1,6 @@
 # Suggested questions: check on the real index (12 Nov 2026)
 
-PASS = status answered and the first cited chunk is in the expected section.
+PASS = status answered and the first cited chunk is in the expected section. This checks the reported section match; it does not verify that every answer is correct or complete, and it is not a test of the suggestion UI.
 
 | Result | Domain | Question | Status | Expected | First cited | All cited |
 |---|---|---|---|---|---|---|

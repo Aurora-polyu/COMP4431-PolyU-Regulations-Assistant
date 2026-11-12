@@ -27,13 +27,17 @@ streamlit run app.py
 
 The first index build downloads the `BAAI/bge-small-en-v1.5` embedding model. Rebuild the index if you move or change `data/chunks.jsonl`. Set `RETRIEVAL_INDEX_DIR` in your shell each time you start the app.
 
-Ask a question and expand its sources to see the supporting passages and page numbers. Rate an answer with the thumbs-up or thumbs-down button to signal whether it was useful, or open **Report** to tell the team about a wrong fact, a missing condition, an irrelevant or out-of-date source, or anything else. All feedback stays in a local database on your machine; nothing is uploaded. Review it later by exporting a CSV or JSONL:
+Choose a suggested question or ask your own, then open the sources to read the supporting passages. Use **New chat** to start another conversation. Chats are saved automatically in `data/user_data.sqlite`; you can search, reopen, rename, and delete them. Save answered responses to Collection, where you can search them, add notes, and export them. Ratings and reports are stored locally for review.
+
+**Temporary chat** keeps the conversation in the current session without saving it locally. Save and feedback actions are unavailable there. Questions, recent conversation history, and retrieved passages are sent to the configured model provider in both chat modes. Settings offers **Delete all my data** to clear chats, saved answers, and feedback from the local database.
+
+Export locally stored feedback for review:
 
 ```sh
 python scripts/export_feedback.py --out feedback.csv
 ```
 
-The export lists each rating and report with its timestamp, the question, the answer and the supporting chunk ids, and prints the counts of likes, dislikes and reports. Use **New conversation** to start over. Check important answers against the official handbook or with the responsible PolyU office.
+The export includes questions, answers, and supporting chunk IDs. For local MCP access, see [MCP setup](docs/mcp.md). Check important answers against the official handbook or with the responsible PolyU office.
 
 ## Checks and troubleshooting
 
@@ -45,4 +49,4 @@ python -m pytest -q -rs
 
 Tests that require the PDF may be skipped if it is missing. If the app cannot find the index, check `RETRIEVAL_INDEX_DIR` and rebuild the index if necessary. If answers fail, check your API key and network connection.
 
-More details: [Architecture](docs/architecture.md), [Data and indexing](docs/data-and-indexing.md), and [Testing](docs/testing.md).
+More details: [Architecture](docs/architecture.md), [Data and indexing](docs/data-and-indexing.md), [Testing](docs/testing.md), and [Roadmap](docs/roadmap.md).

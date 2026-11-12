@@ -1,12 +1,11 @@
 # Architecture
 
-The assistant answers questions in English using the 2026/27 Student Handbook for Taught Programmes. Its Streamlit interface is in `app.py`; it keeps conversation history in the session and shows cited passages with both printed and PDF page numbers.
+The Streamlit interface in `app.py` offers chat history, suggested questions, saved answers, feedback, and source passages. Normal chats and user actions are stored in `data/user_data.sqlite` by `src/user_data.py`; each chat turn is committed as one transaction. Temporary chats remain in session memory, with save and feedback actions unavailable. The Settings control clears the local tables.
 
-1. `src/conversation.py` uses recent history to form a standalone retrieval query when needed, then calls the handbook retriever.
-2. `src/retriever.py` combines vector search over a Chroma index with BM25 keyword ranking using reciprocal rank fusion. The index manifest ties the index to the chunk file and embedding model revision.
-3. The conversation service sends retrieved passages and the question to the model provider through `src/llm_client.py`. It checks the structured response and validates cited IDs against the retrieved passages using `src/citations.py`.
-4. The interface displays the answer and valid cited passages, asks for clarification, reports insufficient evidence, or gives a safe error message. Fictional evidence identified by its chunk ID remains visibly labelled as development data.
-5. Feedback hooks live in `src/ui/feedback.py`: a thumbs widget rates every answer and a **Report** popover collects the reason and a comment. `src/ui/actions.py` combines these with the collection save button into a per-answer action bar under each assistant message.
-6. `src/user_data.py` persists feedback (and chats and saved answers) in a local SQLite database at `data/user_data.sqlite`. Ratings and reports are never uploaded; `scripts/export_feedback.py` exports them for the team to review.
+1. `src/conversation.py` uses recent history to form a standalone query for follow-ups.
+2. `src/retriever.py` combines Chroma vector search with BM25 using reciprocal rank fusion. The index manifest ties the index to its chunk file and embedding model revision.
+3. `src/llm_client.py` sends the question, recent history, and retrieved passages to the configured provider. The conversation service checks the structured response and validates citation IDs against the retrieved set.
+4. The interface displays cited passages, clarification requests, insufficient-evidence responses, or safe error messages. Fictional evidence is labelled as development data.
+5. Collection and feedback hooks use the local database. `scripts/export_feedback.py` exports feedback for review. The local MCP server exposes handbook search and section lookup; see [MCP setup](mcp.md).
 
-The checks do not prove that every claim is supported or that extraction and retrieval are complete. Users must verify answers against the handbook. The data preparation workflow is described in [Data and indexing](data-and-indexing.md).
+Citation checks do not prove that each claim is supported or that retrieval is complete. Verify answers against the handbook. See [Data and indexing](data-and-indexing.md) for the preparation pipeline.

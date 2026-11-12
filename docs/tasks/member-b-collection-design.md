@@ -1,7 +1,7 @@
 # Member B — Collection design note
 
 **Branch:** `feat/collection` · **Files:** `src/ui/collection.py`, `tests/test_collection.py`
-**Task:** [member-b-collection.md](member-b-collection.md) · **Plan:** [NEW_FEATURES_PLAN.md](../NEW_FEATURES_PLAN.md)
+**Task:** [member-b-collection.md](member-b-collection.md) · **Plan:** [NEW_FEATURES_PLAN.md](../../archive/plans/2026-11-new-features-proposal.md)
 
 This note fixes the behaviour before the code is written. It only covers parts the
 task file leaves open; everything else follows the task file literally.

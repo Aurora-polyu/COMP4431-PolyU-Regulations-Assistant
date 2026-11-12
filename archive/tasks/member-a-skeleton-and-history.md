@@ -1,8 +1,10 @@
 # Member A: App Skeleton, Storage and Chat History
 
-**Features:** A1 Saved chat history, A6 UI layout · **Deadline:** 16 Nov 2026, 23:59 · **Background:** [NEW_FEATURES_PLAN.md](../NEW_FEATURES_PLAN.md)
+**Features:** A1 Saved chat history, A6 UI layout · **Deadline:** 16 Nov 2026, 23:59 · **Background:** [NEW_FEATURES_PLAN.md](../plans/2026-11-new-features-proposal.md)
 
 > **Team rules.** A's branch 1 merges to `main` first; B, C and D branch from it. Edit only your own files; only A edits `app.py`. Rebase on `main` before a pull request; each needs one review and a passing `python -m pytest -q -rs`. Storage functions take `db_path=None`, otherwise use `USER_DATA_DB` (default `data/user_data.sqlite`). Optional work starts only after your core pull request is merged.
+
+**Archive note (12 Nov 2026):** The implementation is integrated. The unchecked items below are the original acceptance criteria, not a current verification record.
 
 ## 1. Goal
 

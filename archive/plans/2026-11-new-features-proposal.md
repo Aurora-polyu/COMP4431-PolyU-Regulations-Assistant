@@ -1,5 +1,7 @@
 # New Feature Plan: Make the Handbook Assistant Easier to Start, Trust and Reuse
 
+> Archived proposal. Its status reflects the original plan; see [current roadmap](../../docs/roadmap.md).
+
 **Status:** proposal for team discussion (11 Nov 2026). Nothing is built yet.
 **Deadline:** submit ZIP by **16 Nov 2026, 23:59**.
 
@@ -36,10 +38,10 @@ The detailed tasks for each person are in four files with the same format (goal,
 
 | Member | Features | Task file |
 |---|---|---|
-| A | A1 Saved chat history, app skeleton, storage, UI layout | [member-a-skeleton-and-history.md](tasks/member-a-skeleton-and-history.md) |
-| B | A2 My collection | [member-b-collection.md](tasks/member-b-collection.md) |
-| C | A4 Feedback and report, final docs | [member-c-feedback-and-docs.md](tasks/member-c-feedback-and-docs.md) |
-| D | A3 Suggested questions, A5 MCP server | [member-d-suggestions-and-mcp.md](tasks/member-d-suggestions-and-mcp.md) |
+| A | A1 Saved chat history, app skeleton, storage, UI layout | [member-a-skeleton-and-history.md](../tasks/member-a-skeleton-and-history.md) |
+| B | A2 My collection | [member-b-collection.md](../../docs/tasks/member-b-collection.md) |
+| C | A4 Feedback and report, final docs | [member-c-feedback-and-docs.md](../../docs/tasks/member-c-feedback-and-docs.md) |
+| D | A3 Suggested questions, A5 MCP server | [member-d-suggestions-and-mcp.md](../../docs/tasks/member-d-suggestions-and-mcp.md) |
 
 **Merge order:** A's skeleton branch first; then B, C and D; C updates the docs last.
 

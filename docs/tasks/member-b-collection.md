@@ -1,8 +1,10 @@
 # Member B: My Collection
 
-**Features:** A2 My collection · **Deadline:** 16 Nov 2026, 23:59 · **Background:** [NEW_FEATURES_PLAN.md](../NEW_FEATURES_PLAN.md)
+**Features:** A2 My collection · **Deadline:** 16 Nov 2026, 23:59 · **Background:** [NEW_FEATURES_PLAN.md](../../archive/plans/2026-11-new-features-proposal.md)
 
 > **Team rules.** A's branch 1 merges to `main` first; B, C and D branch from it. Edit only your own files; only A edits `app.py`. Rebase on `main` before a pull request; each needs one review and a passing `python -m pytest -q -rs`. Storage functions take `db_path=None`, otherwise use `USER_DATA_DB` (default `data/user_data.sqlite`). Optional work starts only after your core pull request is merged.
+
+**Status (12 Nov):** Implementation is integrated on this branch. The checkboxes below record the original acceptance criteria; final manual verification is outstanding.
 
 ## 1. Goal
 

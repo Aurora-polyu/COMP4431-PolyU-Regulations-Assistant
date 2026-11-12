@@ -145,3 +145,19 @@ def test_isolated_databases_and_env_fallback(tmp_path, monkeypatch):
     assert env_path.exists()
     assert [c["title"] for c in user_data.list_conversations()] == ["From environment"]
     assert user_data.list_conversations(db_path=second) == []
+
+
+def test_save_turn_rolls_back_both_messages_and_new_conversation(tmp_path):
+    import sqlite3
+    import pytest
+
+    db = db_file(tmp_path)
+    user = {"role": "user", "content": "Q"}
+    answer = {"role": "assistant", "content": "A", "id": "duplicate"}
+    existing = user_data.save_turn(None, "Existing", user, answer, db_path=db)
+    with pytest.raises(sqlite3.IntegrityError):
+        user_data.save_turn(None, "Failed", user, answer, db_path=db)
+    assert [c["title"] for c in user_data.list_conversations(db_path=db)] == ["Existing"]
+    with pytest.raises(sqlite3.IntegrityError):
+        user_data.save_turn(existing, "Existing", user, answer, db_path=db)
+    assert [m["content"] for m in user_data.load_conversation(existing, db_path=db)] == ["Q", "A"]

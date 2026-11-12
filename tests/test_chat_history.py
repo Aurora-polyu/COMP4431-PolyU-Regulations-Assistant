@@ -137,6 +137,10 @@ def test_temporary_chat_writes_nothing(db_path):
         assert any("Temporary chat: not saved" in c.value for c in app.caption)
         ask(app, "Private question")
         assert user_data.list_conversations(db_path=db_path) == []
+        assert user_data.list_saved(db_path=db_path) == []
+        assert user_data.list_feedback(db_path=db_path) == []
+        assert not any(b.label in ("Save", "Saved") for b in app.button)
+        assert not any(p.proto.popover.label == "Report" for p in app.get("popover"))
         assert app.session_state["chat_id"] is None
         button(app, "New chat").click().run()
         assert app.session_state["temporary"] is False
@@ -185,7 +189,7 @@ def test_action_bar_in_temporary_chat(db_path):
         app = start()
         button(app, "Temporary chat").click().run()
         ask(app, "Private question")
-        assert len(_bars(app)) == 1
+        assert _bars(app) == []
 
 
 def test_search_treats_wildcards_literally(db_path):
@@ -196,3 +200,14 @@ def test_search_treats_wildcards_literally(db_path):
         ask(app, "100% attendance")
         assert [c["title"] for c in user_data.list_conversations(search="%", db_path=db_path)] == ["100% attendance"]
         assert user_data.list_conversations(search="_", db_path=db_path) == []
+
+
+def test_save_failure_does_not_leave_partial_session_history(db_path):
+    with patch("src.conversation.answer_question", return_value=response()), \
+            patch("src.ui.chat_list.user_data.save_turn", side_effect=OSError("disk error")):
+        app = start()
+        ask(app, "Question")
+        assert app.session_state["messages"] == []
+        assert app.session_state["chat_id"] is None
+        assert user_data.list_conversations(db_path=db_path) == []
+        assert any("Could not save" in item.value for item in app.error)

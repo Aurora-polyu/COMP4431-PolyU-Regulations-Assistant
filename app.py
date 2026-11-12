@@ -5,6 +5,7 @@ from pathlib import Path
 
 import streamlit as st
 
+from src import user_data
 from src.conversation import FIXTURE_WARNING, NO_EVIDENCE_ANSWER, answer_question
 from src.ui.actions import render_action_bar
 from src.ui.chat_list import persist_turn, render_chat_list
@@ -29,11 +30,38 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "view" not in st.session_state:
     st.session_state.view = "Chat"
+if "chat_id" not in st.session_state:
+    st.session_state.chat_id = None
+if "temporary" not in st.session_state:
+    st.session_state.temporary = False
 
 
 def _new_chat():
     st.session_state.messages = []
+    st.session_state.chat_id = None
+    st.session_state.temporary = False
     st.session_state.view = "Chat"
+
+
+def _temporary_chat():
+    st.session_state.messages = []
+    st.session_state.chat_id = None
+    st.session_state.temporary = True
+    st.session_state.view = "Chat"
+
+
+def _delete_all():
+    user_data.delete_all()
+    for message in st.session_state.messages:
+        message_id = message.get("id")
+        if message_id:
+            st.session_state.pop(f"rate_{message_id}", None)
+    st.session_state.messages = []
+    st.session_state.chat_id = None
+    st.session_state.temporary = False
+    st.session_state.view = "Chat"
+    st.session_state.search = ""
+    st.session_state.confirm_delete_all = False
 
 
 def _show_collection():
@@ -113,9 +141,9 @@ def render_turn(question):
         "evidence_source": evidence_source,
     }
     st.session_state.messages.append(message)
-    _render_message(message)
-    render_action_bar(message)
     persist_turn(user, message)
+    # Rerun so the sidebar list and the history loop (message + action bar) redraw.
+    st.rerun()
 
 
 with st.sidebar:
@@ -126,13 +154,23 @@ with st.sidebar:
         st.markdown(f"<div class='sidebar-title'>{TITLE}</div>", unsafe_allow_html=True)
     with st.container(key="new_chat_button"):
         st.button("New chat", key="new_chat", on_click=_new_chat, use_container_width=True)
-    st.button("Temporary chat", key="temporary_chat", use_container_width=True)
+    st.button("Temporary chat", key="temporary_chat", on_click=_temporary_chat, use_container_width=True)
     st.text_input("Search chats", key="search")
     st.button("Collection", key="show_collection", on_click=_show_collection, use_container_width=True)
     st.markdown("**Chats**")
     render_chat_list()
     with st.popover("Settings"):
-        pass
+        st.checkbox(
+            "I understand this permanently deletes all chats, saved answers and feedback.",
+            key="confirm_delete_all",
+        )
+        st.button(
+            "Delete all my data",
+            key="delete_all",
+            on_click=_delete_all,
+            disabled=not st.session_state.confirm_delete_all,
+            use_container_width=True,
+        )
     st.markdown("**About this assistant**")
     st.markdown("Ask questions about academic regulations using the student handbook.")
     with st.container(key="sidebar_picture"):
@@ -145,6 +183,8 @@ with st.sidebar:
 if st.session_state.view == "Collection":
     render_collection_view()
 else:
+    if st.session_state.temporary:
+        st.caption("Temporary chat: not saved")
     question = st.chat_input("Ask about PolyU academic regulations...")
     if not st.session_state.messages and not question:
         st.markdown(f"<div class='welcome'>{MOTTO}</div>", unsafe_allow_html=True)
@@ -154,9 +194,7 @@ else:
 
     for message in st.session_state.messages:
         _render_message(message)
-        if message.get("role") == "assistant" and message.get("id"):
-            with st.container(key=f"actions_{message['id']}"):
-                render_action_bar(message)
+        render_action_bar(message)
 
     if question:
         render_turn(question)

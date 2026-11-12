@@ -26,6 +26,11 @@ CHECK_OFFICIAL = (
     "Passages come from the PolyU Student Handbook. Always tell the user to confirm "
     "details in the official handbook and with the responsible office (department or Academic Registry)."
 )
+HOW_TO_CITE = (
+    "Cite the section and printed page inline. End the answer with a 'Sources' list: one line per "
+    "passage you used, as 'Section <section>, p. <printed_page> (PDF p. <pdf_page>): \"<short verbatim "
+    "quote from the passage text>\"'. Quote the handbook exactly; do not paraphrase inside the quotes."
+)
 READ_ONLY = ToolAnnotations(read_only_hint=True, open_world_hint=False)
 
 
@@ -38,12 +43,12 @@ async def warm_up(_server):
     yield {}
 
 
-server = MCPServer("polyu-handbook", instructions=CHECK_OFFICIAL, lifespan=warm_up)
+server = MCPServer("polyu-handbook", instructions=HOW_TO_CITE + " " + CHECK_OFFICIAL, lifespan=warm_up)
 
 
 @server.tool(annotations=READ_ONLY, description=(
     "Search the PolyU Student Handbook and return the 5 most relevant passages with their "
-    "section and page numbers. Cite the section and page in your answer. " + CHECK_OFFICIAL
+    "section and page numbers. " + HOW_TO_CITE + " " + CHECK_OFFICIAL
 ))
 def search_handbook(query: str) -> list[dict]:
     if not query.strip():
@@ -60,7 +65,7 @@ def _section_id(section: str) -> str:
 
 @server.tool(annotations=READ_ONLY, description=(
     "Return every passage of one handbook section, in order. Pass a section id such as '4.H' "
-    "(Deferment of Study) or '4' for a whole chapter. " + CHECK_OFFICIAL
+    "(Deferment of Study) or '4' for a whole chapter. " + HOW_TO_CITE + " " + CHECK_OFFICIAL
 ))
 def get_section(section: str) -> list[dict]:
     chunks = [json.loads(line) for line in CHUNKS_PATH.read_text(encoding="utf-8").splitlines() if line.strip()]

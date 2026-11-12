@@ -10,6 +10,7 @@ CHUNKS = [
     {"chunk_id": "sec4H_001", "section": "4.H Deferment of Study*", "printed_page": 11, "pdf_page": 19, "text": "Defer one"},
     {"chunk_id": "sec4H_002", "section": "4.H Deferment of Study*", "printed_page": 12, "pdf_page": 20, "text": "Defer two"},
     {"chunk_id": "sec5A_001", "section": "5.A Subject Registration", "printed_page": 20, "pdf_page": 28, "text": "Register"},
+    {"chunk_id": "sec10_001", "section": "10. Fees", "printed_page": 90, "pdf_page": 98, "text": "Fees"},
 ]
 
 
@@ -40,6 +41,9 @@ def test_search_handbook_rejects_empty_query():
 def test_get_section_returns_chunks_in_order(chunks_file):
     assert [c["chunk_id"] for c in mcp_server.get_section("4.H")] == ["sec4H_001", "sec4H_002"]
     assert len(mcp_server.get_section("4")) == 3
+    assert [c["chunk_id"] for c in mcp_server.get_section("10")] == ["sec10_001"]
+    with pytest.raises(ToolError):  # "1" must not match chapter 10
+        mcp_server.get_section("1")
 
 
 def test_get_section_unknown_lists_nearby_ids(chunks_file):

@@ -11,12 +11,16 @@ HOW_TO_USE = (
 
 
 def render_suggestions() -> str | None:
-    st.markdown(HOW_TO_USE)
-    domains = list(SUGGESTED_QUESTIONS)
-    domain = st.pills("Topic", domains, default=domains[0], key="suggestion_domain",
-                      label_visibility="collapsed") or domains[0]
+    holder = st.empty()
     clicked = None
-    for i, question in enumerate(SUGGESTED_QUESTIONS[domain]):
-        if st.button(question, key=f"suggestion_{i}", width="stretch"):
-            clicked = question
+    with holder.container():
+        st.markdown(HOW_TO_USE)
+        domains = list(SUGGESTED_QUESTIONS)
+        domain = st.pills("Topic", domains, default=domains[0], key="suggestion_domain",
+                          label_visibility="collapsed") or domains[0]
+        for i, question in enumerate(SUGGESTED_QUESTIONS[domain]):
+            if st.button(question, key=f"suggestion_{i}", width="stretch"):
+                clicked = question
+    if clicked:
+        holder.empty()  # app.py answers in this same run, so clear the chips now
     return clicked

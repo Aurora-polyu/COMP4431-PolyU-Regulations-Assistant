@@ -1,4 +1,7 @@
 """Suggested questions: data checks and the Streamlit hook."""
+from pathlib import Path
+from unittest.mock import patch
+
 from streamlit.testing.v1 import AppTest
 
 from src.suggested_questions import SUGGESTED_QUESTIONS
@@ -31,3 +34,31 @@ def test_renders_and_returns_clicked_question():
     app.button[1].click().run()
     assert app.session_state.clicked == SUGGESTED_QUESTIONS[first][1]
     assert not app.exception
+
+
+def _app_response():
+    chunk = {"chunk_id": "t1", "section": "4.H Deferment", "printed_page": 16, "pdf_page": 27, "text": "Text"}
+    return {"status": "answered", "answer": "Answer.", "evidence_source": "handbook",
+            "clarification_question": None, "cited_chunks": [chunk]}
+
+
+def _start_app():
+    path = Path(__file__).resolve().parent.parent / "app.py"
+    return AppTest.from_file(path, default_timeout=10).run()
+
+
+def test_domain_chip_switches_questions():
+    domains = list(SUGGESTED_QUESTIONS)
+    app = _start_app()
+    app.get("button_group")[0].set_value(domains[2]).run()
+    assert [b.label for b in app.button if b.key and b.key.startswith("suggestion_")] == SUGGESTED_QUESTIONS[domains[2]]
+
+
+def test_clicking_suggestion_asks_it_and_hides_suggestions():
+    question = SUGGESTED_QUESTIONS[list(SUGGESTED_QUESTIONS)[0]][0]
+    with patch("src.conversation.answer_question", return_value=_app_response()) as service:
+        app = _start_app()
+        next(b for b in app.button if b.label == question).click().run()
+        assert service.call_args.args[0] == question
+        assert not [b for b in app.button if b.key and b.key.startswith("suggestion_")]
+        assert not app.exception

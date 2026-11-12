@@ -18,8 +18,6 @@ def persist_turn(user_message, assistant_message):
         st.session_state.chat_id = conversation_id
     user_data.append_message(conversation_id, user_message)
     user_data.append_message(conversation_id, assistant_message)
-    # The sidebar list renders before this turn is saved, so refresh it now.
-    st.rerun()
     return conversation_id
 
 

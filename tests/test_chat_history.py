@@ -156,3 +156,43 @@ def test_delete_all_clears_storage_and_session(db_path):
         assert app.session_state["chat_id"] is None
         assert by_key(app, "checkbox", "confirm_delete_all").value is False
         assert not app.exception
+
+
+def _marker(message):
+    import streamlit as st
+    st.markdown(f"ACTIONBAR {message['id']}")
+
+
+def _bars(app):
+    return [m.value for m in app.markdown if m.value.startswith("ACTIONBAR")]
+
+
+def test_action_bar_survives_save_and_reopen(db_path):
+    with patch("src.conversation.answer_question", return_value=response()), \
+            patch("src.ui.actions.render_save_button", _marker):
+        app = start()
+        ask(app, "First question")
+        assert len(_bars(app)) == 1
+        button(app, "New chat").click().run()
+        assert _bars(app) == []
+        button(app, "First question").click().run()
+        assert len(_bars(app)) == 1
+
+
+def test_action_bar_in_temporary_chat(db_path):
+    with patch("src.conversation.answer_question", return_value=response()), \
+            patch("src.ui.actions.render_save_button", _marker):
+        app = start()
+        button(app, "Temporary chat").click().run()
+        ask(app, "Private question")
+        assert len(_bars(app)) == 1
+
+
+def test_search_treats_wildcards_literally(db_path):
+    with patch("src.conversation.answer_question", return_value=response()):
+        app = start()
+        ask(app, "Retake policy")
+        button(app, "New chat").click().run()
+        ask(app, "100% attendance")
+        assert [c["title"] for c in user_data.list_conversations(search="%", db_path=db_path)] == ["100% attendance"]
+        assert user_data.list_conversations(search="_", db_path=db_path) == []

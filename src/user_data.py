@@ -121,10 +121,11 @@ def list_conversations(limit=15, search="", db_path=None):
     query = "SELECT id, title, created_at, updated_at FROM conversations"
     params = []
     if search:
-        pattern = f"%{search}%"
-        query += (" WHERE title LIKE ? OR EXISTS ("
+        escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        pattern = f"%{escaped}%"
+        query += (" WHERE title LIKE ? ESCAPE '\\' OR EXISTS ("
                   "SELECT 1 FROM chat_messages "
-                  "WHERE conversation_id = conversations.id AND content LIKE ?)")
+                  "WHERE conversation_id = conversations.id AND content LIKE ? ESCAPE '\\')")
         params.extend([pattern, pattern])
     query += " ORDER BY updated_at DESC, id DESC LIMIT ?"
     params.append(limit)

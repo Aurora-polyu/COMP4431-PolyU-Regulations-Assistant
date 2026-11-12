@@ -141,9 +141,9 @@ def render_turn(question):
         "evidence_source": evidence_source,
     }
     st.session_state.messages.append(message)
-    _render_message(message)
-    render_action_bar(message)
     persist_turn(user, message)
+    # Rerun so the sidebar list and the history loop (message + action bar) redraw.
+    st.rerun()
 
 
 with st.sidebar:
@@ -194,6 +194,7 @@ else:
 
     for message in st.session_state.messages:
         _render_message(message)
+        render_action_bar(message)
 
     if question:
         render_turn(question)

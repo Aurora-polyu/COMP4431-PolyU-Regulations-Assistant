@@ -27,7 +27,13 @@ streamlit run app.py
 
 The first index build downloads the `BAAI/bge-small-en-v1.5` embedding model. Rebuild the index if you move or change `data/chunks.jsonl`. Set `RETRIEVAL_INDEX_DIR` in your shell each time you start the app.
 
-Ask a question and expand its sources to see the supporting passages and page numbers. Use **New conversation** to start over. Check important answers against the official handbook or with the responsible PolyU office.
+Ask a question and expand its sources to see the supporting passages and page numbers. Rate an answer with the thumbs-up or thumbs-down button to signal whether it was useful, or open **Report** to tell the team about a wrong fact, a missing condition, an irrelevant or out-of-date source, or anything else. All feedback stays in a local database on your machine; nothing is uploaded. Review it later by exporting a CSV or JSONL:
+
+```sh
+python scripts/export_feedback.py --out feedback.csv
+```
+
+The export lists each rating and report with its timestamp, the question, the answer and the supporting chunk ids, and prints the counts of likes, dislikes and reports. Use **New conversation** to start over. Check important answers against the official handbook or with the responsible PolyU office.
 
 ## Checks and troubleshooting
 

@@ -52,6 +52,15 @@ def test_rating_flow_updates_stored_rating(tmp_path, monkeypatch):
     mid = message_id(app)
     assert len(app.feedback) == 1
     assert app.feedback[0].key == f"rate_{mid}"
+    assert app.feedback[0].value is None
+    assert rating_rows(tmp_path / "user_data.sqlite") == []
+
+    app.run()
+    assert app.feedback[0].value is None
+    assert rating_rows(tmp_path / "user_data.sqlite") == []
+
+    app.feedback[0].set_value(0).run()
+    assert user_data.get_rating(mid, db_path=tmp_path / "user_data.sqlite") == -1
 
     app.feedback[0].set_value(1).run()
     rows = rating_rows(tmp_path / "user_data.sqlite")

@@ -1,8 +1,8 @@
 """Local MCP server (stdio) exposing read-only search over the PolyU Student Handbook.
 
 Run:  RETRIEVAL_INDEX_DIR=/abs/path/handbook-index .venv/bin/python mcp_server.py
-Test: .venv/bin/mcp dev mcp_server.py
-Setup for Claude Desktop, Claude Code and Codex: docs/mcp.md.
+Testing with MCP Inspector and setup for Claude Desktop, Claude Code and Codex:
+docs/mcp.md.
 """
 
 import json

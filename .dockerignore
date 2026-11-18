@@ -1,0 +1,26 @@
+# Secrets: never bake into the image
+.env
+.env.*
+!.env.example
+
+# Environments and caches
+.venv
+.venv 2
+__pycache__/
+*.pyc
+.pytest_cache/
+.git
+.claude
+
+# Local data: personal chats and the handbook PDF (sharing permission unconfirmed)
+data/*
+!data/chunks.jsonl
+handbook-index/
+chroma_db/
+
+# Not needed to run the app
+tests/
+docs/
+archive/
+presentation/
+.DS_Store

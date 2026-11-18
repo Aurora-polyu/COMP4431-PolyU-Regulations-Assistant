@@ -1,6 +1,6 @@
 # Architecture
 
-The Streamlit interface in `app.py` offers chat history, suggested questions, saved answers, feedback, and source passages. Normal chats and user actions are stored in `data/user_data.sqlite` by `src/user_data.py`; each chat turn is committed as one transaction. Temporary chats remain in session memory, with save and feedback actions unavailable. The Settings control clears the local tables.
+The Streamlit interface in `app.py` offers chat history, suggested questions, saved answers, feedback, and source passages. Chats and user actions are stored in `data/user_data.sqlite` by `src/user_data.py`; each chat turn is committed as one transaction. The sidebar's **Delete all my data** control clears the local tables after the user chooses **Confirm delete**.
 
 1. `src/conversation.py` uses recent history to form a standalone query for follow-ups.
 2. `src/retriever.py` combines Chroma vector search with BM25 using reciprocal rank fusion. The index manifest ties the index to its chunk file and embedding model revision.

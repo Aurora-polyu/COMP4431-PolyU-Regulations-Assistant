@@ -1,8 +1,8 @@
 # PolyU Academic Regulations Assistant
 
-A COMP4431 retrieval-augmented generation (RAG) project that answers questions about PolyU's academic regulations using the [2026/27 Student Handbook for Taught Programmes](https://www.polyu.edu.hk/ar/docdrive/polyu-students/student-handbook/Student_Handbook_2026-27_English.pdf). It retrieves relevant handbook passages to help generate answers, with source passages and page numbers for reference.
+A retrieval-augmented generation (RAG) chatbot that answers questions about PolyU academic regulations, built for the COMP4431 group project. It searches the [2026/27 Student Handbook for Taught Programmes](https://www.polyu.edu.hk/ar/docdrive/polyu-students/student-handbook/Student_Handbook_2026-27_English.pdf) with hybrid retrieval (embeddings + BM25) and answers with cited passages and printed page numbers, so every claim can be checked against the source.
 
-**This is an unofficial student project.** Answers may contain errors or omit important conditions, even when they include citations. Check the official handbook and consult the responsible PolyU office before making decisions.
+**This is an unofficial student project and is not affiliated with or endorsed by PolyU.** Answers may contain errors or omit important conditions, even when they include citations. Check the official handbook and consult the responsible PolyU office before making decisions.
 
 ## Local setup
 
@@ -29,7 +29,7 @@ The first index build downloads the `BAAI/bge-small-en-v1.5` embedding model. Re
 
 Choose a suggested question or ask your own, then open the sources to read the supporting passages. Use **New chat** to start another conversation. Chats are saved automatically in `data/user_data.sqlite`; you can search, reopen, rename, and delete them. Save answered responses to Collection, where you can search them, add notes, and export them. Ratings and reports are stored locally for review.
 
-**Temporary chat** keeps the conversation in the current session without saving it locally. Save and feedback actions are unavailable there. Questions, recent conversation history, and retrieved passages are sent to the configured model provider in both chat modes. Settings offers **Delete all my data** to clear chats, saved answers, and feedback from the local database.
+Questions, recent conversation history, and retrieved passages are sent to the configured model provider. In the sidebar, choose **Delete all my data**, then **Confirm delete**, to clear chats, saved answers, and feedback from the local database.
 
 Export locally stored feedback for review:
 

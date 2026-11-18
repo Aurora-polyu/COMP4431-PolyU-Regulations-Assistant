@@ -58,8 +58,6 @@ def _widget_default(message):
 def render_rating(message):
     if _eligible(message, RATE_STATUSES):
         default = _widget_default(message)
-        if default is None and message.get("status") == "answered":
-            default = 0
         st.feedback("thumbs", key=f"rate_{message['id']}", default=default,
                     on_change=_on_rating_changed, args=(message,))
 

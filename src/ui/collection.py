@@ -1,8 +1,7 @@
 """My Collection: save an answered message and browse saved answers later.
 
 Replaces the branch-1 stubs that ``app.py`` calls. The storage layer lives in
-``src/user_data.py`` (Member A); citation helpers live in ``src/ui/sources.py``.
-See ``docs/tasks/member-b-collection-design.md`` for the agreed behaviour.
+``src/user_data.py``; citation helpers live in ``src/ui/sources.py``.
 """
 
 import streamlit as st

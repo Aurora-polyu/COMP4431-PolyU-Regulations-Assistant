@@ -30,7 +30,10 @@ def is_sample_hash(source_hash: str) -> bool:
 def tokenize(text: str) -> list[str]:
     words = re.findall(r"[a-z0-9]+", text.lower())
     # Match verb and noun forms while retaining the surrounding context words.
-    return ["withdraw" if word in {"withdrawal", "withdrawals", "withdrawing", "withdrawn"} else word for word in words]
+    withdraw = {"withdrawal", "withdrawals", "withdrawing", "withdrawn"}
+    # Students say "pause"; the handbook says "deferment".
+    defer = {"defer", "deferred", "deferring", "deferment", "deferral", "pause", "paused", "pausing", "postpone", "postponing", "postponement"}
+    return ["withdraw" if w in withdraw else "defer" if w in defer else w for w in words]
 
 
 def validate_chunks(chunks: object) -> list[RetrievedChunk]:

@@ -11,7 +11,7 @@ Tests requiring the handbook may be skipped when it is unavailable; check the re
 
 For manual review, run the app with the real handbook index and ask representative questions, including follow-ups and questions with insufficient evidence. Compare every claim and cited passage with the relevant PDF page, including table layout, conditions, and printed/PDF page numbers. A valid citation ID alone does not establish that the answer is correct or complete. Live model calls may incur charges.
 
-For an integrated manual pass, reopen and search a saved chat, save and export an answer, rate and report an answer, and check that Temporary chat offers no save or feedback actions. Check delete-all against a disposable database. See [MCP setup](mcp.md) for client checks.
+For an integrated manual pass, reopen and search a saved chat, save and export an answer, and rate and report an answer. Check the sidebar's **Delete all my data** and **Confirm delete** controls against a disposable database. See [MCP setup](mcp.md) for client checks.
 
 Feedback is reviewed from the local database:
 

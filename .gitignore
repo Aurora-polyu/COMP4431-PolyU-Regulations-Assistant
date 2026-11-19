@@ -254,3 +254,4 @@ chroma_db_sample/
 
 # Presentation materials stay local
 /presentation/
+.claude/
